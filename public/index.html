@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Start Phone Verification - Super Simple Authy Demo</title>
+    <!--Made by an engineer for engineers-->
+    <link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>
+    <script src="app.js"></script>
+    <style>
+        .container {
+            padding-top: 15%;
+        }
+    </style>
+</head>
+<body ng-app="authyDemo">
+
+<div class="container" ng-controller="PhoneVerificationController">
+    <div class="row centered-form">
+        <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Sign up for Street Sweeping Reminders!</h3>
+                </div>
+                <div class="panel-body">
+                    <form role="form">
+                        <div class="row">
+                            <div class="col-xs-4 col-sm-4 col-md-4">
+                                <div class="form-group">
+                                    <select class="form-control nth-day">
+                                        <option value="first" selected="selected">FIRST</option>
+                                        <option value="second">SECOND</option>
+                                        <option value="third">THIRD</option>
+                                        <option value="fourth">FOURTH</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-xs-4 col-sm-4 col-md-4">
+                                <div class="form-group">
+                                    <select name="via" class="form-control weekday">
+                                        <option value="monday" selected="selected">MONDAY</option>
+                                        <option value="tuesday">TUESDAY</option>
+                                        <option value="wednesday">WEDNESDAY</option>
+                                        <option value="thursday">THURSDAY</option>
+                                        <option value="friday">FRIDAY</option>
+                                        <option value="saturday">SATURDAY</option>
+                                        <option value="sunday">SUNDAY</option>
+                                        <option value="call">CALL</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-xs-4 col-sm-4 col-md-4">
+                                <div class="form-group">
+                                    <input type="time" name="time"
+                                           class="form-control time">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" value="">
+                                Remind me one hour before.
+                            </label>
+                        </div>
+                        <div class="form-check disabled">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" value="">
+                                Remind me 7:00 pm the night before.
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="panel-body" ng-show="view.start">
+                    <form role="form">
+                        <div class="row">
+                            <div class="col-xs-3 col-sm-3 col-md-3">
+                                <div class="form-group">
+                                    <input type="text" name="country_code" id="country_code"
+                                           ng-model="setup.country_code"
+                                           class="form-control input-sm"
+                                           placeholder="Country Code">
+                                </div>
+                            </div>
+                            <div class="col-xs-6 col-sm-6 col-md-6">
+                                <div class="form-group">
+                                    <input type="tel" name="phone_number" id="phone_number"
+                                           ng-model="setup.phone_number"
+                                           class="form-control input-sm"
+                                           placeholder="Phone #">
+                                </div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3">
+                                <div class="form-group">
+                                    <select name="via" id="via" ng-model="setup.via"  class="form-control">
+                                        <option value="sms" selected="selected">SMS</option>
+                                        <option value="call">CALL</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <input type="submit" value="Get Reminder!"
+                               ng-click="startVerification()"
+                               class="btn btn-info btn-block">
+                    </form>
+                </div>
+                <div class="panel-body" ng-hide="view.start">
+                    <form role="form">
+                        <div class="row">
+                            <div class="col-xs-6 col-sm-6 col-md-6">
+                                <div class="form-group">
+                                    <input type="text" name="token"
+                                           id="token"
+                                           ng-model="setup.token"
+                                           class="form-control"
+                                           placeholder="Verification Token">
+                                </div>
+                            </div>
+                            <div class="col-xs-6 col-sm-6 col-md-6">
+                                <div class="form-group">
+                                    <input type="submit" value="Verify Phone"
+                                           ng-click="verifyToken()"
+                                           class="btn btn-info btn-block">
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

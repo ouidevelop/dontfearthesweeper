@@ -1,0 +1,10 @@
+mvp:
+    time zone
+    change app name from "fear the sweep" on twilio authy as it sounds super creepy when doing call notification
+    validate inputs and give error message if they are wrong
+    remove favicon
+    generic message eg "you have street sweeping in one hour!", "you have street sweeping tomorrow at 2:30!"
+
+extra:
+    add months to be reminded
+    remind at arbitrary amount of hours before (up to 48 hours)
