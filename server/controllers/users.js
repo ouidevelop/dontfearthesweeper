@@ -1,152 +1,12 @@
-var crypto = require('crypto');
 var mongoose = require('mongoose');
 var User = mongoose.model('User');
 var config = require('../config.js');
-var qs = require('qs');
 var request = require('request');
 var phoneReg = require('../lib/phone_verification')(config.API_KEY);
 
 // https://github.com/seegno/authy-client
 const Client = require('authy-client').Client;
 const authy = new Client({key: config.API_KEY});
-
-
-function hashPW(pwd) {
-    return crypto.createHash('sha256').update(pwd).digest('base64').toString();
-}
-
-/**
- * Login a user
- * @param req
- * @param res
- */
-exports.login = function (req, res) {
-    User.findOne({username: req.body.username})
-        .exec(function (err, user) {
-            if (!user) {
-                err = 'Username Not Found';
-            } else if (('password' in req.body) && (user.hashed_password !==
-                hashPW(req.body.password.toString()))) {
-                err = 'Wrong Password';
-            } else {
-                createSession(req, res, user);
-            }
-
-            if (err) {
-                res.status(500).json(err);
-            }
-        });
-};
-
-/**
- * Logout a user
- *
- * @param req
- * @param res
- */
-exports.logout = function (req, res) {
-    req.session.destroy(function (err) {
-        if (err) {
-            console.log("Error Logging Out: ", err);
-            return next(err);
-        }
-        res.status(200).send();
-    });
-};
-
-/**
- * Checks to see if the user is logged in and redirects appropriately
- *
- * @param req
- * @param res
- */
-exports.loggedIn = function (req, res) {
-    if (req.session.loggedIn && req.session.authy) {
-        res.status(200).json({url: "/protected"});
-    } else if (req.session.loggedIn && !req.session.authy) {
-        res.status(200).json({url: "/2fa"});
-    } else {
-        res.status(409).send();
-    }
-};
-
-/**
- * Sign up a new user.
- *
- * @param req
- * @param res
- */
-exports.register = function (req, res) {
-
-    var username = req.body.username;
-    User.findOne({username: username}).exec(function (err, user) {
-        if (err) {
-            console.log('Rregistration Error', err);
-            res.status(500).json(err);
-            return;
-        }
-        if (user) {
-            res.status(409).json({err: "Username Already Registered"});
-            return;
-        }
-
-        user = new User({username: req.body.username});
-
-        user.set('hashed_password', hashPW(req.body.password));
-        user.set('email', req.body.email);
-        user.set('authyId', null);
-        user.save(function (err) {
-            if (err) {
-                console.log('Error Creating User', err);
-                res.status(500).json(err);
-            } else {
-
-                authy.registerUser({
-                    countryCode: req.body.country_code,
-                    email: req.body.email,
-                    phone: req.body.phone_number
-                }, function (err, regRes) {
-                    if (err) {
-                        console.log('Error Registering User with Authy');
-                        res.status(500).json(err);
-                        return;
-                    }
-
-                    user.set('authyId', regRes.user.id);
-
-                    // Save the AuthyID into the database then request an SMS
-                    user.save(function (err) {
-                        if (err) {
-                            console.log('error saving user in authyId registration ', err);
-                            res.session.error = err;
-                            res.status(500).json(err);
-                        } else {
-                            createSession(req, res, user);
-                        }
-                    });
-                });
-            }
-        });
-    });
-};
-
-
-/**
- * Check user login status.  Redirect appropriately.
- *
- * @param req
- * @param res
- */
-exports.loggedIn = function (req, res) {
-
-    if (req.session.loggedIn && req.session.authy) {
-        res.status(200).json({url: "/protected"});
-    } else if (req.session.loggedIn && !req.session.authy) {
-        res.status(200).json({url: "/2fa"});
-    } else {
-        res.status(200).json({url: "/login"});
-    }
-};
 
 /**
  * Request a OneCode via SMS
@@ -295,35 +155,6 @@ exports.createonetouch = function (req, res) {
 };
 
 /**
- * Verify the OneTouch request callback via HMAC inspection.
- *
- * @url https://en.wikipedia.org/wiki/Hash-based_message_authentication_code
- * @url https://gist.github.com/josh-authy/72952c62521480f3dd710dcbad0d8c42
- *
- * @param req
- * @return {Boolean}
- */
-function verifyCallback(req) {
-
-    var apiKey = config.API_KEY;
-
-    var url = req.headers['x-forwarded-proto'] + "://" + req.hostname + req.url;
-    var method = req.method;
-    var params = req.body;
-
-    // Sort the params.
-    var sorted_params = qs.stringify(params).split("&").sort().join("&").replace(/%20/g, '+');
-
-    var nonce = req.headers["x-authy-signature-nonce"];
-    var data = nonce + "|" + method + "|" + url + "|" + sorted_params;
-
-    var computed_sig = crypto.createHmac('sha256', apiKey).update(data).digest('base64');
-    var sig = req.headers["x-authy-signature"];
-
-    return sig == computed_sig;
-}
-
-/**
  * Poll for the OneTouch status.  Return the response to the client.
  * Set the user session 'authy' variable to true if authenticated.
  *
@@ -418,22 +249,3 @@ exports.verifyPhoneToken = function (req, res) {
         res.status(500).json({error: "Missing fields"});
     }
 };
-
-/**
- * Create the initial user session.
- *
- * @param req
- * @param res
- * @param user
- */
-function createSession(req, res, user) {
-    req.session.regenerate(function () {
-        req.session.loggedIn = true;
-        req.session.user = user.id;
-        req.session.username = user.username;
-        req.session.msg = 'Authenticated as: ' + user.username;
-        req.session.authy = false;
-        req.session.ph_verified = false;
-        res.status(200).json();
-    });
-}
