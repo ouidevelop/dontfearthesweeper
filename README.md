@@ -9,4 +9,6 @@ When you have gin, you can run the application by going into the project folder 
 
 You will need some environment variables set. Specifically, you will have to set an env variable called 'STREETSWEEP_AUTHY_API_KEY'. Get the api key directly from me (on slack or email).
 
+Once you have the application running, go to localhost:3000 in your browser (or instead of 3000, use whichever port gin tells you to use when you first run gin).
+
 Let me know if you have trouble setting this up, and I'll help you out -mike
