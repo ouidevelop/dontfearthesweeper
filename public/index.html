@@ -10,56 +10,58 @@
 </head>
 <body ng-app="authyDemo">
 
-<h3>Sign up for Street Sweeping Reminders!</h3>
-<div>
-    Which day of the month do you have street sweeping?
-</div>
-<form role="form">
+<div class="container" ng-controller="PhoneVerificationController">
+    <h3>Sign up for Street Sweeping Reminders!</h3>
     <div>
-        <select>
-            <option value="nth Day" selected="selected">nth Day</option>
-            <option value="first">FIRST</option>
-            <option value="second">SECOND</option>
-            <option value="third">THIRD</option>
-            <option value="fourth">FOURTH</option>
-        </select>
-        <select>
-            <option value="Weekday" selected="selected">Weekday</option>
-            <option value="monday">MONDAY</option>
-            <option value="tuesday">TUESDAY</option>
-            <option value="wednesday">WEDNESDAY</option>
-            <option value="thursday">THURSDAY</option>
-            <option value="friday">FRIDAY</option>
-            <option value="saturday">SATURDAY</option>
-            <option value="sunday">SUNDAY</option>
-        </select>
+        Which day of the month do you have street sweeping?
     </div>
-</form>
-<div>
-    you will be reminded at 7pm the night before street sweeping day
+    <form role="form">
+        <div>
+            <select>
+                <option value="nth Day" selected="selected">nth Day</option>
+                <option value="first">FIRST</option>
+                <option value="second">SECOND</option>
+                <option value="third">THIRD</option>
+                <option value="fourth">FOURTH</option>
+            </select>
+            <select>
+                <option value="Weekday" selected="selected">Weekday</option>
+                <option value="monday">MONDAY</option>
+                <option value="tuesday">TUESDAY</option>
+                <option value="wednesday">WEDNESDAY</option>
+                <option value="thursday">THURSDAY</option>
+                <option value="friday">FRIDAY</option>
+                <option value="saturday">SATURDAY</option>
+                <option value="sunday">SUNDAY</option>
+            </select>
+        </div>
+    </form>
+    <div>
+        you will be reminded at 7pm the night before street sweeping day
+    </div>
+    <form role="form">
+        <input type="text" name="country_code" id="country_code"
+               ng-model="setup.country_code"
+               placeholder="Country Code">
+        <input type="tel" name="phone_number" id="phone_number"
+               ng-model="setup.phone_number"
+               placeholder="Phone #">
+        <select name="via" id="via" ng-model="setup.via" class="form-control">
+            <option value="sms" selected="selected">SMS</option>
+            <option value="call">CALL</option>
+        </select>
+        <input type="submit" value="Get Reminder!"
+               ng-click="startVerification()">
+    </form>
+    <form role="form">
+        <input type="text" name="token"
+               id="token"
+               ng-model="setup.token"
+               placeholder="Verification Token">
+        <input type="submit" value="Verify Phone"
+               ng-click="verifyToken()">
+    </form>
 </div>
-<form role="form">
-    <input type="text" name="country_code" id="country_code"
-           ng-model="setup.country_code"
-           placeholder="Country Code">
-    <input type="tel" name="phone_number" id="phone_number"
-           ng-model="setup.phone_number"
-           placeholder="Phone #">
-    <select name="via" id="via" ng-model="setup.via" class="form-control">
-        <option value="sms" selected="selected">SMS</option>
-        <option value="call">CALL</option>
-    </select>
-    <input type="submit" value="Get Reminder!"
-           ng-click="startVerification()">
-</form>
-<form role="form">
-    <input type="text" name="token"
-           id="token"
-           ng-model="setup.token"
-           placeholder="Verification Token">
-    <input type="submit" value="Verify Phone"
-           ng-click="verifyToken()">
-</form>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>

@@ -49,6 +49,7 @@ exports.sms = function (req, res) {
  * @param req
  * @param res
  */
+
 exports.voice = function (req, res) {
     var username = req.session.username;
     User.findOne({username: username}).exec(function (err, user) {
