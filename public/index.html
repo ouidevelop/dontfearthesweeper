@@ -30,15 +30,13 @@
             Which day of the month do you have street sweeping?
         </div>
         <div>
-            <select ng-model="setup.nth_day">
-                <option value="nth Day" selected="selected">nth Day</option>
+            <select ng-model="setup.nth_day" type="number">
                 <option value="1">FIRST</option>
                 <option value="2">SECOND</option>
                 <option value="3">THIRD</option>
                 <option value="4">FOURTH</option>
             </select>
-            <select ng-model="setup.weekday">
-                <option value="Weekday" selected="selected">Weekday</option>
+            <select ng-model="setup.weekday" type="number">
                 <option value="0">SUNDAY</option>
                 <option value="1">MONDAY</option>
                 <option value="2">TUESDAY</option>
@@ -51,10 +49,10 @@
         <div>
             you will be reminded at 7pm the night before street sweeping day
         </div>
-        <input type="text" name="country_code" id="country_code"
+        <input type="number" name="country_code" id="country_code"
                ng-model="setup.country_code"
                placeholder="Country Code">
-        <input type="tel" name="phone_number" id="phone_number"
+        <input type="number" name="phone_number" id="phone_number"
                ng-model="setup.phone_number"
                placeholder="Phone #">
         <select name="via" id="via" ng-model="setup.via" class="form-control">

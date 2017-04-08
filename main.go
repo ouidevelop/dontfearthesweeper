@@ -11,7 +11,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strconv"
 
@@ -29,18 +28,18 @@ var (
 
 type StartVerifyReq struct {
 	Via         string `json:"via"`
-	CountryCode string `json:"country_code"`
-	PhoneNumber string `json:"phone_number"`
+	CountryCode int    `json:"country_code"`
+	PhoneNumber int    `json:"phone_number"`
 }
 
 //{"via":"sms","timezone":"America/Phoenix","nth_day":"second","weekday":"friday","country_code":"1","phone_number":"8054234224","token":"3"}
 
 type VerifyCodeReq struct {
 	Timezone    string `json:"timezone"`
-	NthDay      string `json:"nth_day"`
-	Weekday     string `json:"weekday"`
-	CountryCode string `json:"country_code"`
-	PhoneNumber string `json:"phone_number"`
+	NthDay      int    `json:"nth_day"`
+	Weekday     int    `json:"weekday"`
+	CountryCode int    `json:"country_code"`
+	PhoneNumber int    `json:"phone_number"`
 	Token       string `json:"token"`
 }
 
@@ -64,14 +63,21 @@ func init() {
 		// do something here
 	}
 
+	dropTableCommand := `drop table if exists alerts`
+	_, err = DB.Exec(dropTableCommand)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	createTableCommand := `CREATE TABLE IF NOT EXISTS alerts(
-				   ID INT NOT NULL,
-				   PHONE_NUMBER INT NOT NULL,
+				   ID INT NOT NULL AUTO_INCREMENT,
+				   PHONE_NUMBER CHAR(10) NOT NULL,
 				   COUNTRY_CODE INT NOT NULL,
 				   NTH_DAY INT NOT NULL,
 				   TIMEZONE VARCHAR(100) NOT NULL,
 				   WEEKDAY VARCHAR(20) NOT NULL,
-				   NEXT_CALL BIGINT,
+				   NEXT_CALL BIGINT NOT NULL,
 				   PRIMARY KEY  (ID)
 				)`
 	_, err = DB.Exec(createTableCommand)
@@ -82,6 +88,35 @@ func init() {
 }
 
 func main() {
+	go func() {
+		stmt, err := DB.Prepare("select * from alerts where NEXT_CALL < ?")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer stmt.Close()
+		for range time.Tick(1 * time.Second) {
+			go func() {
+				nowUTC := time.Now().Unix()
+				rows, err := stmt.Query(nowUTC)
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer rows.Close()
+				for rows.Next() {
+					//alert :=
+					//err := rows.Scan(&id, &name)
+					//if err != nil {
+					//	log.Fatal(err)
+					//}
+					log.Println("bob")
+				}
+				if err = rows.Err(); err != nil {
+					log.Fatal(err)
+				}
+			}()
+		}
+	}()
+
 	http.Handle("/", http.FileServer(http.Dir("./public")))
 	http.HandleFunc("/verification/start", verificationStartHandler)
 	http.HandleFunc("/verification/verify", verificationVerifyHandler)
@@ -90,25 +125,22 @@ func main() {
 }
 
 func verificationStartHandler(w http.ResponseWriter, r *http.Request) {
-	requestDump, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("1", string(requestDump))
+	//requestDump, err := httputil.DumpRequest(r, true)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//fmt.Println("1", string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
 	var t StartVerifyReq
-	err = decoder.Decode(&t)
+	err := decoder.Decode(&t)
 	if err != nil {
 		panic(err)
 	}
 	defer r.Body.Close()
 	log.Printf("bob: %+v", t)
-	countryCodeInt, err := strconv.Atoi(t.CountryCode)
-	if err != nil {
-		panic(err)
-	}
-	verification, err := authyAPI.StartPhoneVerification(countryCodeInt, t.PhoneNumber, t.Via, url.Values{})
+
+	verification, err := authyAPI.StartPhoneVerification(t.CountryCode, strconv.Itoa(t.PhoneNumber), t.Via, url.Values{})
 	if verification.Success {
 		w.WriteHeader(http.StatusOK)
 	} else {
@@ -120,25 +152,22 @@ func verificationStartHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func verificationVerifyHandler(w http.ResponseWriter, r *http.Request) {
-	requestDump, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("2", string(requestDump))
+	//requestDump, err := httputil.DumpRequest(r, true)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//fmt.Println("2", string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
 	var t VerifyCodeReq
-	err = decoder.Decode(&t)
+	err := decoder.Decode(&t)
 	if err != nil {
 		panic(err)
 	}
 	defer r.Body.Close()
 	log.Printf("bob: %+v", t)
-	countryCodeInt, err := strconv.Atoi(t.CountryCode)
-	if err != nil {
-		panic(err)
-	}
-	verification, err := authyAPI.CheckPhoneVerification(countryCodeInt, t.PhoneNumber, t.Token, url.Values{})
+
+	verification, err := authyAPI.CheckPhoneVerification(t.CountryCode, strconv.Itoa(t.PhoneNumber), t.Token, url.Values{})
 	fmt.Println("verification, err", verification, err)
 
 	if verification.Success {
@@ -151,14 +180,6 @@ func verificationVerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//PHONE_NUMBER INT NOT NULL,
-//COUNTRY_CODE INT NOT NULL,
-//NTH_DAY INT NOT NULL,
-//TIMEZONE VARCHAR(100) NOT NULL,
-//WEEKDAY VARCHAR(20) NOT NULL,
-//NEXT_CALL BIGINT,
-//PRIMARY KEY  (ID)
-
 func save(alert VerifyCodeReq) {
 	stmt, err := DB.Prepare("INSERT INTO alerts (PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY, NEXT_CALL) VALUES (?,?,?,?,?,?)")
 	if err != nil {
@@ -170,17 +191,7 @@ func save(alert VerifyCodeReq) {
 		log.Fatal(err)
 	}
 
-	phoneNumber, err := strconv.Atoi(alert.PhoneNumber)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	countryCode, err := strconv.Atoi(alert.CountryCode)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = stmt.Exec(phoneNumber, countryCode, alert.NthDay, alert.Timezone, alert.Weekday, nextCall)
+	_, err = stmt.Exec(alert.PhoneNumber, alert.CountryCode, alert.NthDay, alert.Timezone, alert.Weekday, nextCall)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -192,16 +203,6 @@ var Now = func() time.Time {
 
 func CalculateNextCall(alert VerifyCodeReq) (int64, error) {
 	var NextCallTime int64
-	weekday, err := strconv.Atoi(alert.Weekday)
-	if err != nil {
-		fmt.Println("problem converting weekday string to int")
-		return NextCallTime, err
-	}
-	nthDay, err := strconv.Atoi(alert.NthDay)
-	if err != nil {
-		fmt.Println("problem converting weekday string to int")
-		return NextCallTime, err
-	}
 
 	location, err := time.LoadLocation(alert.Timezone)
 	if err != nil {
@@ -209,9 +210,9 @@ func CalculateNextCall(alert VerifyCodeReq) (int64, error) {
 	}
 
 	now := Now().In(location)
-	timeAtNthDayOfMonth := TimeAtNthDayOfMonth(now, nthDay, weekday, 19) //todo: change this hard coded hour
+	timeAtNthDayOfMonth := TimeAtNthDayOfMonth(now, alert.NthDay, alert.Weekday, 19) //todo: change this hard coded hour
 	if now.After(timeAtNthDayOfMonth) {
-		timeAtNthDayOfMonth = TimeAtNthDayOfMonth(now.AddDate(0, 1, 0), nthDay, weekday, 19)
+		timeAtNthDayOfMonth = TimeAtNthDayOfMonth(now.AddDate(0, 1, 0), alert.NthDay, alert.Weekday, 19)
 	}
 
 	NextCallTime = timeAtNthDayOfMonth.Unix()
@@ -220,12 +221,9 @@ func CalculateNextCall(alert VerifyCodeReq) (int64, error) {
 }
 
 func TimeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Time {
-
 	firstDayOfThisMonth := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 	dateOfFirstWeekday := ((weekday+7)-int(firstDayOfThisMonth.Weekday()))%7 + 1
-	fmt.Println("dateOfFirstWeekday ", dateOfFirstWeekday)
 	dateOfNthWeekday := dateOfFirstWeekday + ((nthDay - 1) * 7)
-	fmt.Println("nthday ", dateOfNthWeekday)
 	TimeAtNthDayOfMonth := time.Date(t.Year(), t.Month(), dateOfNthWeekday, hour, 0, 0, 0, t.Location())
 	return TimeAtNthDayOfMonth
 }

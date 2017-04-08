@@ -5,10 +5,6 @@ app.controller('PhoneVerificationController', function ($scope, $http, $window, 
     $scope.setup = {
         via: "sms"
     };
-    
-    $scope.view = {
-        start: true
-    };
 
     /**
      * Initialize Phone Verification
@@ -28,6 +24,8 @@ app.controller('PhoneVerificationController', function ($scope, $http, $window, 
      * Verify phone token
      */
     $scope.verifyToken = function () {
+        $scope.setup.nth_day = parseInt($scope.setup.nth_day, 10)
+        $scope.setup.weekday = parseInt($scope.setup.weekday, 10)
         console.log("scope.setup", $scope.setup)
         $http.post('/verification/verify', $scope.setup)
             .success(function (data, status, headers, config) {
