@@ -5,3 +5,21 @@ https://unsplash.com/search/street?photo=NZVQ3YDlIa4
 https://unsplash.com/search/street?photo=DHMlx0Osvg8
 https://unsplash.com/search/photos/blur-street?photo=mFYm4SZjmCY
 https://unsplash.com/search/photos/street-urban?photo=pdkfGLDxL7I
+
+
+alerts
+_______
+ID INT NOT NULL
+
+CREATE TABLE IF NOT EXISTS alerts(
+   ID INT NOT NULL AUTO_INCREMENT,
+   PHONE_NUMBER INT NOT NULL,
+   COUNTRY_CODE INT NOT NULL,
+   NTH_DAY INT NOT NULL,
+   TIMEZONE VARCHAR(100) NOT NULL,
+   WEEKDAY VARCHAR(20) NOT NULL,
+   NEXT_CALL BIGINT,
+   PRIMARY KEY  (ID)
+)
+
+{"via":"sms","timezone":"America/Los_Angeles","nth_day":"3","weekday":"thursday","country_code":"1","phone_number":"8054234224","token":"5225"}

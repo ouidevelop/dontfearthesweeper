@@ -12,34 +12,45 @@
 
 <div class="container" ng-controller="PhoneVerificationController">
     <h3>Sign up for Street Sweeping Reminders!</h3>
-    <div>
-        Which day of the month do you have street sweeping?
-    </div>
     <form role="form">
         <div>
-            <select>
+            What is your time zone? (right now we only support United States time zones)
+        </div>
+        <select ng-model="setup.timezone">
+            <option value="--" selected="selected">--</option>
+            <option value="Pacific/Honolulu">(GMT-10:00) Hawaii Time</option>
+            <option value="America/Anchorage">(GMT-08:00) Alaska Time</option>
+            <option value="America/Los_Angeles">(GMT-07:00) Pacific Time</option>
+            <option value="America/Denver">(GMT-06:00) Mountain Time</option>
+            <option value="America/Phoenix">(GMT-07:00) Mountain Time - Arizona</option>
+            <option value="America/Chicago">(GMT-05:00) Central Time</option>
+            <option value="America/New_York">(GMT-04:00) Eastern Time</option>
+        </select>
+        <div>
+            Which day of the month do you have street sweeping?
+        </div>
+        <div>
+            <select ng-model="setup.nth_day">
                 <option value="nth Day" selected="selected">nth Day</option>
-                <option value="first">FIRST</option>
-                <option value="second">SECOND</option>
-                <option value="third">THIRD</option>
-                <option value="fourth">FOURTH</option>
+                <option value="1">FIRST</option>
+                <option value="2">SECOND</option>
+                <option value="3">THIRD</option>
+                <option value="4">FOURTH</option>
             </select>
-            <select>
+            <select ng-model="setup.weekday">
                 <option value="Weekday" selected="selected">Weekday</option>
-                <option value="monday">MONDAY</option>
-                <option value="tuesday">TUESDAY</option>
-                <option value="wednesday">WEDNESDAY</option>
-                <option value="thursday">THURSDAY</option>
-                <option value="friday">FRIDAY</option>
-                <option value="saturday">SATURDAY</option>
-                <option value="sunday">SUNDAY</option>
+                <option value="0">SUNDAY</option>
+                <option value="1">MONDAY</option>
+                <option value="2">TUESDAY</option>
+                <option value="3">WEDNESDAY</option>
+                <option value="4">THURSDAY</option>
+                <option value="5">FRIDAY</option>
+                <option value="6">SATURDAY</option>
             </select>
         </div>
-    </form>
-    <div>
-        you will be reminded at 7pm the night before street sweeping day
-    </div>
-    <form role="form">
+        <div>
+            you will be reminded at 7pm the night before street sweeping day
+        </div>
         <input type="text" name="country_code" id="country_code"
                ng-model="setup.country_code"
                placeholder="Country Code">
@@ -50,10 +61,11 @@
             <option value="sms" selected="selected">SMS</option>
             <option value="call">CALL</option>
         </select>
-        <input type="submit" value="Get Reminder!"
+        <input type="submit" value="Get Verification Code"
                ng-click="startVerification()">
-    </form>
-    <form role="form">
+        <div>
+            Now just type in the verification code to start getting notifications!
+        </div>
         <input type="text" name="token"
                id="token"
                ng-model="setup.token"
