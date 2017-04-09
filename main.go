@@ -67,13 +67,6 @@ func init() {
 		// do something here
 	}
 
-	dropTableCommand := `drop table if exists alerts`
-	_, err = DB.Exec(dropTableCommand)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	createTableCommand := `CREATE TABLE IF NOT EXISTS alerts(
 				   ID INT NOT NULL AUTO_INCREMENT,
 				   PHONE_NUMBER CHAR(10) NOT NULL,
