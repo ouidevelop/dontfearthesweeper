@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/sfreiberg/gotwilio"
 	"github.com/dcu/go-authy"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -21,9 +22,13 @@ import (
 var (
 	//All global environment variables should be set at the beginning of the application, then remain unchanged.
 	authyAPIKey = os.Getenv("STREETSWEEP_AUTHY_API_KEY")
+	accountSid   = os.Getenv("TWILIO_ID")
+	authToken    = os.Getenv("TWILIO_AUTH_TOKEN")
+	twilio       = gotwilio.NewTwilioClient(accountSid, authToken)
 	Port        = os.Getenv("PORT")
 	authyAPI    *authy.Authy
 	DB          *sql.DB
+	from         = "+15102414070"
 )
 
 type StartVerifyReq struct {
@@ -32,9 +37,8 @@ type StartVerifyReq struct {
 	PhoneNumber int    `json:"phone_number"`
 }
 
-//{"via":"sms","timezone":"America/Phoenix","nth_day":"second","weekday":"friday","country_code":"1","phone_number":"8054234224","token":"3"}
 
-type VerifyCodeReq struct {
+type Alert struct {
 	Timezone    string `json:"timezone"`
 	NthDay      int    `json:"nth_day"`
 	Weekday     int    `json:"weekday"`
@@ -88,27 +92,50 @@ func init() {
 }
 
 func main() {
+
 	go func() {
-		stmt, err := DB.Prepare("select * from alerts where NEXT_CALL < ?")
+		fmt.Println("1")
+		stmt, err := DB.Prepare("select ID, PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY from alerts where NEXT_CALL < ?")
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer stmt.Close()
-		for range time.Tick(1 * time.Second) {
-			go func() {
+
+		updateStmt, err := DB.Prepare("UPDATE alerts SET NEXT_CALL = ? WHERE ID = ?;")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer updateStmt.Close()
+
+		for range time.Tick(10 * time.Second) {
+			func() {
 				nowUTC := time.Now().Unix()
 				rows, err := stmt.Query(nowUTC)
+				fmt.Println("2", rows)
 				if err != nil {
 					log.Fatal(err)
 				}
 				defer rows.Close()
 				for rows.Next() {
-					//alert :=
-					//err := rows.Scan(&id, &name)
-					//if err != nil {
-					//	log.Fatal(err)
-					//}
-					log.Println("bob")
+					var id int
+					alert := Alert{}
+
+					err := rows.Scan(&id, &alert.PhoneNumber, &alert.CountryCode, &alert.NthDay, &alert.Timezone, &alert.Weekday)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					nextCall, err := CalculateNextCall(alert)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					_, err = updateStmt.Exec(nextCall, id)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					remind(alert.CountryCode, alert.PhoneNumber)
 				}
 				if err = rows.Err(); err != nil {
 					log.Fatal(err)
@@ -125,11 +152,6 @@ func main() {
 }
 
 func verificationStartHandler(w http.ResponseWriter, r *http.Request) {
-	//requestDump, err := httputil.DumpRequest(r, true)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//fmt.Println("1", string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
 	var t StartVerifyReq
@@ -152,14 +174,9 @@ func verificationStartHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func verificationVerifyHandler(w http.ResponseWriter, r *http.Request) {
-	//requestDump, err := httputil.DumpRequest(r, true)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//fmt.Println("2", string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
-	var t VerifyCodeReq
+	var t Alert
 	err := decoder.Decode(&t)
 	if err != nil {
 		panic(err)
@@ -180,7 +197,7 @@ func verificationVerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func save(alert VerifyCodeReq) {
+func save(alert Alert) {
 	stmt, err := DB.Prepare("INSERT INTO alerts (PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY, NEXT_CALL) VALUES (?,?,?,?,?,?)")
 	if err != nil {
 		log.Fatal(err) //todo: change these log.fatals to a more reasonable error handling
@@ -201,7 +218,7 @@ var Now = func() time.Time {
 	return time.Now()
 }
 
-func CalculateNextCall(alert VerifyCodeReq) (int64, error) {
+func CalculateNextCall(alert Alert) (int64, error) {
 	var NextCallTime int64
 
 	location, err := time.LoadLocation(alert.Timezone)
@@ -226,4 +243,12 @@ func TimeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Ti
 	dateOfNthWeekday := dateOfFirstWeekday + ((nthDay - 1) * 7)
 	TimeAtNthDayOfMonth := time.Date(t.Year(), t.Month(), dateOfNthWeekday, hour, 0, 0, 0, t.Location())
 	return TimeAtNthDayOfMonth
+}
+
+func remind(countryCode, phoneNumber int) {
+	twilioNumber := "+" + strconv.Itoa(countryCode) + strconv.Itoa(phoneNumber)
+	fmt.Println("sending message")
+	message := "Don't forget about street sweeping!"
+	resp, exception, err := twilio.SendSMS(from, twilioNumber, message, "", "")
+	fmt.Println("to: ", twilioNumber, "resp: ", resp, "exception: ", exception, "err: ", err)
 }
