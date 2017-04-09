@@ -29,6 +29,7 @@ var (
 	authyAPI    *authy.Authy
 	DB          *sql.DB
 	from         = "+15102414070"
+	MySQLPassword = os.Getenv("MYSQL_PASSWORD")
 )
 
 type StartVerifyReq struct {
@@ -53,15 +54,14 @@ func init() {
 	}
 	authyAPI = authy.NewAuthyAPI(authyAPIKey)
 
-	db, err := sql.Open("mysql",
-		"root:@tcp(127.0.0.1:3306)/hello")
+	db, err := sql.Open("mysql", MySQLPassword)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	DB = db
 
-	err = db.Ping()
+	err = DB.Ping()
 	if err != nil {
 		log.Fatal(err)
 		// do something here
