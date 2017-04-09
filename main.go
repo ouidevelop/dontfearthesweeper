@@ -20,10 +20,11 @@ import (
 
 var (
 	//All global environment variables should be set at the beginning of the application, then remain unchanged.
-	authyAPIKey = os.Getenv("STREETSWEEP_AUTHY_API_KEY")
-	Port        = os.Getenv("PORT")
-	authyAPI    *authy.Authy
-	DB          *sql.DB
+	authyAPIKey   = os.Getenv("STREETSWEEP_AUTHY_API_KEY")
+	Port          = os.Getenv("PORT")
+	MySQLPassword = os.Getenv("MYSQL_PASSWORD")
+	authyAPI      *authy.Authy
+	DB            *sql.DB
 )
 
 type StartVerifyReq struct {
@@ -50,14 +51,14 @@ func init() {
 	authyAPI = authy.NewAuthyAPI(authyAPIKey)
 
 	db, err := sql.Open("mysql",
-		"root:@tcp(127.0.0.1:3306)/hello")
+		"root:"+MySQLPassword+"@tcp(127.0.0.1:3306)/hello")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	DB = db
 
-	err = db.Ping()
+	err = DB.Ping()
 	if err != nil {
 		log.Fatal(err)
 		// do something here
