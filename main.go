@@ -1,43 +1,42 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
-	"database/sql"
-	"time"
-
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
+	"time"
 
-	"github.com/sfreiberg/gotwilio"
+	"database/sql"
 	"github.com/dcu/go-authy"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/sfreiberg/gotwilio"
 )
+
+const from = "+15102414070"
 
 var (
 	//All global environment variables should be set at the beginning of the application, then remain unchanged.
-	authyAPIKey = os.Getenv("STREETSWEEP_AUTHY_API_KEY")
-	accountSid   = os.Getenv("TWILIO_ID")
-	authToken    = os.Getenv("TWILIO_AUTH_TOKEN")
-	twilio       = gotwilio.NewTwilioClient(accountSid, authToken)
-	Port        = os.Getenv("PORT")
-	authyAPI    *authy.Authy
-	DB          *sql.DB
-	from         = "+15102414070"
-	MySQLPassword = os.Getenv("MYSQL_PASSWORD")
+	authyAPIKey     = os.Getenv("STREETSWEEP_AUTHY_API_KEY")
+	twilioID        = os.Getenv("TWILIO_ID")
+	twilioAuthToken = os.Getenv("TWILIO_AUTH_TOKEN")
+	port            = os.Getenv("PORT")
+	mysqlPassword   = os.Getenv("MYSQL_PASSWORD")
+
+	twilio   = gotwilio.NewTwilioClient(twilioID, twilioAuthToken)
+	authyAPI = authy.NewAuthyAPI(authyAPIKey)
+	db       *sql.DB
 )
 
-type StartVerifyReq struct {
+type StartVerification struct {
 	Via         string `json:"via"`
 	CountryCode int    `json:"country_code"`
 	PhoneNumber int    `json:"phone_number"`
 }
-
 
 type Alert struct {
 	Timezone    string `json:"timezone"`
@@ -52,166 +51,112 @@ func init() {
 	if authyAPIKey == "" {
 		log.Fatal("STREETSWEEP_AUTHY_API_KEY environment variable not set")
 	}
-	authyAPI = authy.NewAuthyAPI(authyAPIKey)
-
-	db, err := sql.Open("mysql", MySQLPassword)
-	if err != nil {
-		log.Fatal(err)
+	if twilioID == "" {
+		log.Fatal("TWILIO_ID environment variable not set")
+	}
+	if twilioAuthToken == "" {
+		log.Fatal("TWILIO_AUTH_TOKEN environment variable not set")
+	}
+	if port == "" {
+		port = "8080"
+	}
+	if mysqlPassword == "" {
+		log.Fatal("MYSQL_PASSWORD environment variable not set")
 	}
 
-	DB = db
-
-	err = DB.Ping()
-	if err != nil {
-		log.Fatal(err)
-		// do something here
-	}
-
-	createTableCommand := `CREATE TABLE IF NOT EXISTS alerts(
-				   ID INT NOT NULL AUTO_INCREMENT,
-				   PHONE_NUMBER CHAR(10) NOT NULL,
-				   COUNTRY_CODE INT NOT NULL,
-				   NTH_DAY INT NOT NULL,
-				   TIMEZONE VARCHAR(100) NOT NULL,
-				   WEEKDAY VARCHAR(20) NOT NULL,
-				   NEXT_CALL BIGINT NOT NULL,
-				   PRIMARY KEY  (ID)
-				)`
-	_, err = DB.Exec(createTableCommand)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	db = startDB()
 }
 
 func main() {
 
 	go func() {
-		fmt.Println("1")
-		stmt, err := DB.Prepare("select ID, PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY from alerts where NEXT_CALL < ?")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer stmt.Close()
-
-		updateStmt, err := DB.Prepare("UPDATE alerts SET NEXT_CALL = ? WHERE ID = ?;")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer updateStmt.Close()
-
 		for range time.Tick(10 * time.Second) {
-			func() {
-				nowUTC := time.Now().Unix()
-				rows, err := stmt.Query(nowUTC)
-				fmt.Println("2", rows)
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer rows.Close()
-				for rows.Next() {
-					var id int
-					alert := Alert{}
-
-					err := rows.Scan(&id, &alert.PhoneNumber, &alert.CountryCode, &alert.NthDay, &alert.Timezone, &alert.Weekday)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					nextCall, err := CalculateNextCall(alert)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					_, err = updateStmt.Exec(nextCall, id)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					remind(alert.CountryCode, alert.PhoneNumber)
-				}
-				if err = rows.Err(); err != nil {
-					log.Fatal(err)
-				}
-			}()
+			FindReadyAlerts()
 		}
 	}()
 
 	http.Handle("/", http.FileServer(http.Dir("./public")))
 	http.HandleFunc("/verification/start", verificationStartHandler)
-	http.HandleFunc("/verification/verify", verificationVerifyHandler)
-	log.Println("Magic happening on port " + Port)
-	log.Fatal(http.ListenAndServe(":"+Port, nil))
+	http.HandleFunc("/verification/verify", VerificationVerifyHandler)
+	log.Println("Magic happening on port " + port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+// for mocking:
+var StartPhoneVerification = func (countryCode int, phoneNumber string, via string, params url.Values) (*authy.PhoneVerificationStart, error) {
+	return authyAPI.StartPhoneVerification(countryCode, phoneNumber, via, params)
 }
 
 func verificationStartHandler(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
-	var t StartVerifyReq
+	var t StartVerification
 	err := decoder.Decode(&t)
 	if err != nil {
-		panic(err)
+		log.Println("error decoding json: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "oops! we made a mistake")
+		return
 	}
 	defer r.Body.Close()
-	log.Printf("bob: %+v", t)
+	t.CountryCode = 1
 
-	verification, err := authyAPI.StartPhoneVerification(t.CountryCode, strconv.Itoa(t.PhoneNumber), t.Via, url.Values{})
-	if verification.Success {
-		w.WriteHeader(http.StatusOK)
-	} else {
+	verification, err := StartPhoneVerification(t.CountryCode, strconv.Itoa(t.PhoneNumber), t.Via, url.Values{})
+	if !verification.Success {
 		//todo: do this better. figure out all the ways that start phone verification could fail and handle all of them well
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "validation code incorrect")
+		w.WriteHeader(http.StatusUnauthorized)
+		io.WriteString(w, "problem starting phone verification")
+		return
 	}
-	fmt.Println("verification, err", verification, err)
+
+	w.WriteHeader(http.StatusOK)
 }
 
-func verificationVerifyHandler(w http.ResponseWriter, r *http.Request) {
+// for mocking:
+var CheckPhoneVerification = func (countryCode int, phoneNumber string, verificationCode string, params url.Values) (*authy.PhoneVerificationCheck, error) {
+	return authyAPI.CheckPhoneVerification(countryCode, phoneNumber, verificationCode, params)
+}
+
+func VerificationVerifyHandler(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	var t Alert
 	err := decoder.Decode(&t)
 	if err != nil {
-		panic(err)
+		log.Println("error decoding json: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "oops! we made a mistake")
+		return
 	}
 	defer r.Body.Close()
-	log.Printf("bob: %+v", t)
+	t.CountryCode = 1
 
-	verification, err := authyAPI.CheckPhoneVerification(t.CountryCode, strconv.Itoa(t.PhoneNumber), t.Token, url.Values{})
-	fmt.Println("verification, err", verification, err)
-
-	if verification.Success {
-		w.WriteHeader(200)
-		save(t)
-	} else {
+	verification, err := CheckPhoneVerification(t.CountryCode, strconv.Itoa(t.PhoneNumber), t.Token, url.Values{})
+	if !verification.Success {
 		//todo: do this better. figure out all the ways that CheckPhoneVerification could fail and handle all of them well
-		w.WriteHeader(401)
+		w.WriteHeader(http.StatusUnauthorized)
 		io.WriteString(w, "validation code incorrect")
-	}
-}
-
-func save(alert Alert) {
-	stmt, err := DB.Prepare("INSERT INTO alerts (PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY, NEXT_CALL) VALUES (?,?,?,?,?,?)")
-	if err != nil {
-		log.Fatal(err) //todo: change these log.fatals to a more reasonable error handling
+		return
 	}
 
-	nextCall, err := CalculateNextCall(alert)
+	err = save(t)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("problem saving new alert to database: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "oops! we made a mistake")
+		return
 	}
 
-	_, err = stmt.Exec(alert.PhoneNumber, alert.CountryCode, alert.NthDay, alert.Timezone, alert.Weekday, nextCall)
-	if err != nil {
-		log.Fatal(err)
-	}
+	w.WriteHeader(http.StatusOK)
 }
 
 var Now = func() time.Time {
+
 	return time.Now()
 }
 
 func CalculateNextCall(alert Alert) (int64, error) {
+
 	var NextCallTime int64
 
 	location, err := time.LoadLocation(alert.Timezone)
@@ -220,17 +165,18 @@ func CalculateNextCall(alert Alert) (int64, error) {
 	}
 
 	now := Now().In(location)
-	timeAtNthDayOfMonth := TimeAtNthDayOfMonth(now, alert.NthDay, alert.Weekday, 19) //todo: change this hard coded hour
-	if now.After(timeAtNthDayOfMonth) {
-		timeAtNthDayOfMonth = TimeAtNthDayOfMonth(now.AddDate(0, 1, 0), alert.NthDay, alert.Weekday, 19)
+	t := timeAtNthDayOfMonth(now, alert.NthDay, alert.Weekday, 19) //todo: change this hard coded hour
+	if now.After(t) {
+		t = timeAtNthDayOfMonth(now.AddDate(0, 1, 0), alert.NthDay, alert.Weekday, 19)
 	}
 
-	NextCallTime = timeAtNthDayOfMonth.Unix()
+	NextCallTime = t.Unix()
 
 	return NextCallTime, nil
 }
 
-func TimeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Time {
+func timeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Time {
+
 	firstDayOfThisMonth := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 	dateOfFirstWeekday := ((weekday+7)-int(firstDayOfThisMonth.Weekday()))%7 + 1
 	dateOfNthWeekday := dateOfFirstWeekday + ((nthDay - 1) * 7)
@@ -239,9 +185,10 @@ func TimeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Ti
 }
 
 func remind(countryCode, phoneNumber int) {
+
 	twilioNumber := "+" + strconv.Itoa(countryCode) + strconv.Itoa(phoneNumber)
 	fmt.Println("sending message")
-	message := "Don't forget about street sweeping!"
+	message := "Don't forget about street tomorrow!"
 	resp, exception, err := twilio.SendSMS(from, twilioNumber, message, "", "")
 	fmt.Println("to: ", twilioNumber, "resp: ", resp, "exception: ", exception, "err: ", err)
 }
