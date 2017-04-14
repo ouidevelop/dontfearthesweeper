@@ -7,109 +7,106 @@
     <title>Don't Fear the Sweeper</title>
     <link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32">
     <link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16">
-    <style>
-
-        html {
-            background: url("assets/echo-grid-216888.jpg") no-repeat center center fixed;
-            -webkit-background-size: cover;
-            -moz-background-size: cover;
-            -o-background-size: cover;
-            background-size: cover;
-        }
-
-        .container {
-            position: fixed;
-            width:520px;
-            height:320px;
-            background-color: rgba(248, 247, 216, 0.5);
-            padding:10px;
-            border:5px solid #CCC;
-            border-radius: 25px;
-            z-index:200;
-            margin: 5% auto;
-            left: 0;
-            right: 0;
-
-        }
-
-        h3 {
-            text-align: center;
-        }
-
-
-
-    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Abel" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<body ng-app="authyDemo">
 
-<div class="container" ng-controller="PhoneVerificationController">
-    <h3>Sign up for Street Sweeping Reminders!</h3>
-    <form role="form">
-        <div>
-            What is your time zone? (right now we only support United States time zones)
-        </div>
-        <select title="timezone" ng-model="setup.timezone">
-            <option value="">- Timezone -</option>
-            <option value="Pacific/Honolulu">(GMT-10:00) Hawaii Time</option>
-            <option value="America/Anchorage">(GMT-08:00) Alaska Time</option>
-            <option value="America/Los_Angeles">(GMT-07:00) Pacific Time</option>
-            <option value="America/Denver">(GMT-06:00) Mountain Time</option>
-            <option value="America/Phoenix">(GMT-07:00) Mountain Time - Arizona</option>
-            <option value="America/Chicago">(GMT-05:00) Central Time</option>
-            <option value="America/New_York">(GMT-04:00) Eastern Time</option>
-        </select>
-        <div>
-            Which day of the month do you have street sweeping?
-        </div>
-        <div>
-            <select ng-model="setup.nth_day" type="number">
-                <option value="">- Nth -</option>
-                <option value="1">FIRST</option>
-                <option value="2">SECOND</option>
-                <option value="3">THIRD</option>
-                <option value="4">FOURTH</option>
-            </select>
-            <select ng-model="setup.weekday" type="number">
-                <option value="">- Weekday -</option>
-                <option value="0">SUNDAY</option>
-                <option value="1">MONDAY</option>
-                <option value="2">TUESDAY</option>
-                <option value="3">WEDNESDAY</option>
-                <option value="4">THURSDAY</option>
-                <option value="5">FRIDAY</option>
-                <option value="6">SATURDAY</option>
-            </select>
-        </div>
-        <div>
-            You will be reminded at 7pm the night before street sweeping day
-        </div>
-        <input type="number" name="country_code" id="country_code"
-               ng-model="setup.country_code"
-               placeholder="Country Code">
-        <input type="number" name="phone_number" id="phone_number"
-               ng-model="setup.phone_number"
-               placeholder="Phone #">
-        <select name="via" id="via" ng-model="setup.via" class="form-control">
-            <option value="sms" selected="selected">SMS</option>
-            <option value="call">CALL</option>
-        </select>
-        <input type="submit" value="Get Verification Code"
-               ng-click="startVerification()">
-        <div>
-            Now just type in the verification code to start getting notifications!
-        </div>
-        <input type="text" name="token"
-               id="token"
-               ng-model="setup.token"
-               placeholder="Verification Token">
-        <input type="submit" value="Verify Phone"
-               ng-click="verifyToken()">
-    </form>
-</div>
+<body ng-app="authyDemo" ng-controller="PhoneVerificationController">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>
-<script src="app.js"></script>
+    <div class="form-container">
+
+        <div class="title">
+            <h1>Don't fear the sweeper</h1>
+            <h2>Sign up for Street Sweeping Reminders!</h2>
+        </div>
+
+        <form role="form">
+            <div class="time-zone">
+                <p>What is your time zone? (right now we only support United States time zones)</p>
+                <div class="dropdown" title="timezone">
+                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <span>Timezone</span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="timeZone">
+                        <li><a ng-click="setTimeZone('Pacific/Honolulu')">(GMT-10:00) Hawaii Time</a></li>
+                        <li><a ng-click="setTimeZone('America/Anchorage')">(GMT-08:00) Alaska Time</a></li>
+                        <li><a ng-click="setTimeZone('America/Los_Angeles')">(GMT-07:00) Pacific Time</a></li>
+                        <li><a ng-click="setTimeZone('America/Denver')">(GMT-06:00) Mountain Time</a></li>
+                        <li><a ng-click="setTimeZone('America/Phoenix')">(GMT-07:00) Mountain Time - Arizona</a></li>
+                        <li><a ng-click="setTimeZone('America/Chicago')">(GMT-05:00) Central Time</a></li>
+                        <li><a ng-click="setTimeZone('America/New_York')">(GMT-04:00) Eastern Time</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="month-day">
+                <p>Which day of the month do you have street sweeping?</p>
+                <div class="dropdown" title="week">
+                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        Nth
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="daySetup">
+                        <li><a ng-click="setWeek('1')">first</a></li>
+                        <li><a ng-click="setWeek('2')">second</a></li>
+                        <li><a ng-click="setWeek('3')">third</a></li>
+                        <li><a ng-click="setWeek('4')">fourth</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown" title="day">
+                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        Weekday
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="weekSetup">
+                        <li><a ng-click="setDay('0')">Sunday</a></li>
+                        <li><a ng-click="setDay('1')">Monday</a></li>
+                        <li><a ng-click="setDay('2')">Tuesday</a></li>
+                        <li><a ng-click="setDay('3')">Wednesday</a></li>
+                        <li><a ng-click="setDay('4')">Thursday</a></li>
+                        <li><a ng-click="setDay('5')">Friday</a></li>
+                        <li><a ng-click="setDay('6')">Saturday</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="phone-info">
+                <p>You will be reminded at 7pm the night before street sweeping day</p>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Phone #" aria-describedby="phone-number" ng-model="setup.phone_number">
+                    <div class="input-group-btn">
+                        <div class="dropdown" title="method">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Method
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="method">
+                                <li><a ng-click="setMethod('sms')">SMS</a></li>
+                                <li><a ng-click="setMethod('call')">Call</a></li>
+                            </ul>
+                            <button class="btn btn-default" type="button" ng-click="startVerification()">Get Code</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="verification">
+                <p>Now just type in the verification code to start getting notifications!</p>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Verification Token" aria-describedby="verification-token" ng-model="setup.token">
+                    <span class="input-group-btn">
+                         <button class="btn btn-default" type="button" ng-click="verifyToken()">Verify Phone</button>
+                    </span>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>
+    <script src="app.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 </body>
 </html>

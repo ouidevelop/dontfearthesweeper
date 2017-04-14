@@ -6,6 +6,23 @@ app.controller('PhoneVerificationController', function ($scope, $http, $window, 
         via: "sms"
     };
 
+    $scope.setTimeZone = function(zone) {
+        console.log('seting up timezone');
+        $scope.setup.timezone = zone;
+    };
+
+    $scope.setWeek = function(n) {
+        $scope.setup.nth_day = n;
+    };
+
+    $scope.setDay = function(day) {
+        $scope.setup.weekday = day;
+    };
+
+    $scope.setMethod = function(method) {
+        $scope.setup.via = method;
+    };
+
     /**
      * Initialize Phone Verification
      */
