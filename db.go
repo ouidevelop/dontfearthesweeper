@@ -5,14 +5,14 @@ import (
 	"log"
 )
 
-func FindReadyAlerts() {
-	findReadyAlertStmt, err := db.Prepare("select ID, PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY from alerts where NEXT_CALL < ?")
+func FindReadyAlerts(sender smsMessager) {
+	findReadyAlertStmt, err := DB.Prepare("select ID, PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY from alerts where NEXT_CALL < ?")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer findReadyAlertStmt.Close()
 
-	updateStmt, err := db.Prepare("UPDATE alerts SET NEXT_CALL = ? WHERE ID = ?;")
+	updateStmt, err := DB.Prepare("UPDATE alerts SET NEXT_CALL = ? WHERE ID = ?;")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func FindReadyAlerts() {
 			log.Println("error exicuting update statement: err", err)
 		}
 
-		remind(alert.CountryCode, alert.PhoneNumber)
+		remind(alert.PhoneNumber, sender)
 	}
 	if err = rows.Err(); err != nil {
 		log.Println("problem iterating through the rows: ", err)
@@ -52,7 +52,7 @@ func FindReadyAlerts() {
 }
 
 func save(alert Alert) error {
-	stmt, err := db.Prepare("INSERT INTO alerts (PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY, NEXT_CALL) VALUES (?,?,?,?,?,?)")
+	stmt, err := DB.Prepare("INSERT INTO alerts (PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY, NEXT_CALL) VALUES (?,?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func save(alert Alert) error {
 	return nil
 }
 
-func startDB() *sql.DB {
+func startDB(mysqlPassword string) *sql.DB {
 	db, err := sql.Open("mysql", mysqlPassword)
 	if err != nil {
 		log.Fatal(err)
@@ -97,4 +97,17 @@ func startDB() *sql.DB {
 	}
 
 	return db
+}
+
+func removeAlert(alert Alert) error {
+	stmt, err := DB.Prepare("DELETE FROM alerts WHERE PHONE_NUMBER = ?;")
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(alert.PhoneNumber)
+	if err != nil {
+		return err
+	}
+	return nil
 }

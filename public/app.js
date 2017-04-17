@@ -7,6 +7,7 @@ app.controller('PhoneVerificationController', function ($scope, $http, $window, 
     };
 
     $scope.setTimeZone = function(zone) {
+        $scope.timezoneButton = zone;
         $scope.setup.timezone = zone;
     };
 
@@ -49,6 +50,19 @@ app.controller('PhoneVerificationController', function ($scope, $http, $window, 
             })
             .error(function (data, status, headers, config) {
                 console.error("Verification error: ", data);
+            });
+    };
+
+    /**
+     * Delete all alerts of a given phone number
+     */
+    $scope.deleteAccount = function () {
+        $http.post('/alerts/stop', $scope.setup)
+            .success(function (data, status, headers, config) {
+                console.log("Delete started: ", data);
+            })
+            .error(function (data, status, headers, config) {
+                console.error("remove alerts error: ", data);
             });
     };
 });
