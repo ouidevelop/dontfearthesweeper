@@ -99,7 +99,7 @@ func startDB(mysqlPassword string) *sql.DB {
 	return db
 }
 
-func removeAlert(alert Alert) error {
+func removeAlerts(alert Alert) error {
 	stmt, err := DB.Prepare("DELETE FROM alerts WHERE PHONE_NUMBER = ?;")
 	if err != nil {
 		return err
