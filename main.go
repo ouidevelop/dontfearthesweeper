@@ -89,7 +89,7 @@ func main() {
 
 	isProduction := os.Getenv("STREETSWEEP_PRODUCTION")
 	if isProduction == "true" {
-		go func(){
+		go func() {
 			for range time.Tick(5 * time.Minute) {
 				resp, err := http.Get("https://dontfearthesweeper.herokuapp.com/")
 				if err != nil {
@@ -106,8 +106,13 @@ func main() {
 	http.HandleFunc("/verification/start", env.verificationStartHandler)
 	http.HandleFunc("/verification/verify", env.VerificationVerifyHandler)
 	http.HandleFunc("/alerts/stop", env.stopAlertHandler)
+	http.HandleFunc("/alerts/bob", env.bob)
 	log.Println("Magic happening on port " + port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+func (env *Env) bob(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(35 * time.Second)
 }
 
 func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
@@ -134,7 +139,7 @@ func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = removeAlert(t)
+	err = removeAlerts(t)
 	if err != nil {
 		log.Println("problem deleting alert to database: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
