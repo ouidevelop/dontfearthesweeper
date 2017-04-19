@@ -112,7 +112,9 @@ func main() {
 }
 
 func (env *Env) bob(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
 	time.Sleep(35 * time.Second)
+	fmt.Println("bobbobobobobobobobobobobobo")
 }
 
 func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
