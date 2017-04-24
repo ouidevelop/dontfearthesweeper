@@ -2,17 +2,18 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 )
 
 func FindReadyAlerts(sender smsMessager) {
-	findReadyAlertStmt, err := DB.Prepare("select ID, PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY from alerts where NEXT_CALL < ?")
+	findReadyAlertStmt, err := DB.Prepare("select ID, PHONE_NUMBER, NTH_DAY, TIMEZONE, WEEKDAY from alerts where NEXT_CALL < ?")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer findReadyAlertStmt.Close()
 
-	updateStmt, err := DB.Prepare("UPDATE alerts SET NEXT_CALL = ? WHERE ID = ?;")
+	updateStmt, err := DB.Prepare("UPDATE alerts SET NEXT_CALL = ? WHERE ID = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,13 +29,14 @@ func FindReadyAlerts(sender smsMessager) {
 	for rows.Next() {
 		var id int
 		alert := Alert{}
+		day := Day{}
 
-		err := rows.Scan(&id, &alert.PhoneNumber, &alert.CountryCode, &alert.NthDay, &alert.Timezone, &alert.Weekday)
+		err := rows.Scan(&id, &alert.PhoneNumber, &day.NthWeek, &alert.Timezone, &day.Weekday)
 		if err != nil {
 			log.Println("problem scanning rows: err", err)
 		}
 
-		nextCall, err := CalculateNextCall(alert)
+		nextCall, err := CalculateNextCall(day.NthWeek, day.Weekday, alert.Timezone)
 		if err != nil {
 			log.Println("error calculating next call: err", err)
 		}
@@ -52,20 +54,36 @@ func FindReadyAlerts(sender smsMessager) {
 }
 
 func save(alert Alert) error {
-	stmt, err := DB.Prepare("INSERT INTO alerts (PHONE_NUMBER, COUNTRY_CODE, NTH_DAY, TIMEZONE, WEEKDAY, NEXT_CALL) VALUES (?,?,?,?,?,?)")
+	fmt.Println("in save ...", alert)
+	tx, err := DB.Begin()
+	stmt, err := tx.Prepare("INSERT INTO alerts (PHONE_NUMBER, NTH_DAY, TIMEZONE, WEEKDAY, NEXT_CALL, COUNTRY_CODE) VALUES (?,?,?,?,?,1)")
 	if err != nil {
+		fmt.Println("problem preparing transaction", err)
+		err := tx.Rollback()
 		return err
 	}
 
-	nextCall, err := CalculateNextCall(alert)
-	if err != nil {
-		return err
-	}
+	for _, t := range alert.Times {
+		fmt.Println("$$$$$$$$$$$$$$$$$$$$$", t)
+		nextCall, err := CalculateNextCall(t.NthWeek, t.Weekday, alert.Timezone)
+		fmt.Println("in save ..., next call: ", nextCall)
 
-	_, err = stmt.Exec(alert.PhoneNumber, alert.CountryCode, alert.NthDay, alert.Timezone, alert.Weekday, nextCall)
-	if err != nil {
-		return err
+		if err != nil {
+			fmt.Println("problem calculating next call: ", err)
+			err := tx.Rollback()
+			return err
+		}
+		result, err := stmt.Exec(alert.PhoneNumber, t.NthWeek, alert.Timezone, t.Weekday, nextCall)
+		rowsAffected, _ := result.RowsAffected()
+		lastInsertId, _ := result.LastInsertId()
+		fmt.Println("new alert created: ", rowsAffected, lastInsertId)
+		if err != nil {
+			fmt.Println("problem exicuting statement: ", err)
+			err := tx.Rollback()
+			return err
+		}
 	}
+	tx.Commit()
 	return nil
 }
 
@@ -83,7 +101,6 @@ func startDB(mysqlPassword string) *sql.DB {
 	createTableCommand := `CREATE TABLE IF NOT EXISTS alerts(
 				   ID INT NOT NULL AUTO_INCREMENT,
 				   PHONE_NUMBER CHAR(10) NOT NULL,
-				   COUNTRY_CODE INT NOT NULL,
 				   NTH_DAY INT NOT NULL,
 				   TIMEZONE VARCHAR(100) NOT NULL,
 				   WEEKDAY VARCHAR(20) NOT NULL,

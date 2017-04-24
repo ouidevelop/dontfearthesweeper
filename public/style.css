@@ -47,9 +47,17 @@ table {
     border-spacing: 0;
 }
 
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+   done
+*/
+
+
 *, *:before, *:after {
     box-sizing: border-box;
 }
+
 html, body {
     font-family: 'Abel', sans-serif;
     height: 100%;
@@ -99,8 +107,8 @@ form div p {
     padding: 10px 0;
 }
 
-.time-zone, .month-day, .phone-info, .verification {
-    padding: 20px;
+.select-timezone, .select-alert-times, .phone-info, .verification {
+    padding: 0 20px 20px 20px;
 }
 
 .time-zone {

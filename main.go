@@ -4,17 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"database/sql"
 
+	"net/http/httputil"
+
 	"github.com/dcu/go-authy"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sfreiberg/gotwilio"
+
+	"log"
 )
 
 type Env struct {
@@ -30,20 +32,23 @@ var (
 
 type StartVerification struct {
 	Via         string `json:"via"`
-	CountryCode int    `json:"country_code"`
-	PhoneNumber int    `json:"phone_number"`
+	PhoneNumber string `json:"phoneNumber"`
 }
 
 type Alert struct {
 	Timezone    string `json:"timezone"`
-	NthDay      int    `json:"nth_day"`
-	Weekday     int    `json:"weekday"`
-	CountryCode int    `json:"country_code"`
-	PhoneNumber int    `json:"phone_number"`
+	Times       []Day  `json:"times"`
+	PhoneNumber string `json:"phoneNumber"`
 	Token       string `json:"token"`
 }
 
+type Day struct {
+	Weekday int `json:"weekday"`
+	NthWeek int `json:"nthWeek"`
+}
+
 func init() {
+
 	mysqlPassword := os.Getenv("MYSQL_PASSWORD")
 	if mysqlPassword == "" {
 		log.Fatal("MYSQL_PASSWORD environment variable not set")
@@ -106,18 +111,8 @@ func main() {
 	http.HandleFunc("/verification/start", env.verificationStartHandler)
 	http.HandleFunc("/verification/verify", env.VerificationVerifyHandler)
 	http.HandleFunc("/alerts/stop", env.stopAlertHandler)
-	http.HandleFunc("/alerts/bob", env.bob)
 	log.Println("Magic happening on port " + port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
-}
-
-func (env *Env) bob(w http.ResponseWriter, r *http.Request) {
-	//go func(){
-		time.Sleep(35 * time.Second)
-		fmt.Println("bobbobobobobobobobobobobobo")
-	//}()
-	w.WriteHeader(200)
-	io.WriteString(w, "oops! we made a mistake")
 }
 
 func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
@@ -132,10 +127,9 @@ func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	t.CountryCode = 1
 	log.Println("alert: ", t)
 
-	verification, err := env.MsgSvc.VerifyCode(strconv.Itoa(t.PhoneNumber), t.Token)
+	verification, err := env.MsgSvc.VerifyCode(t.PhoneNumber, t.Token)
 	if !verification {
 		log.Println("verification attempt not successful: error: ", err)
 		//todo: do this better. figure out all the ways that CheckPhoneVerification could fail and handle all of them well
@@ -156,10 +150,15 @@ func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (env *Env) verificationStartHandler(w http.ResponseWriter, r *http.Request) {
+	requestDump, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
 	var t StartVerification
-	err := decoder.Decode(&t)
+	err = decoder.Decode(&t)
 	if err != nil {
 		log.Println("error decoding json: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -167,24 +166,27 @@ func (env *Env) verificationStartHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	defer r.Body.Close()
-	t.CountryCode = 1
 
-	verified, err := env.MsgSvc.RequestCode(strconv.Itoa(t.PhoneNumber))
+	verified, err := env.MsgSvc.RequestCode(t.PhoneNumber)
 	if !verified {
 		//todo: do this better. figure out all the ways that start phone verification could fail and handle all of them well
 		w.WriteHeader(http.StatusUnauthorized)
 		io.WriteString(w, "problem starting phone verification")
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
 }
 
 func (env *Env) VerificationVerifyHandler(w http.ResponseWriter, r *http.Request) {
+	requestDump, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("(((((((((((((((((((((((((((((((((((((((((", string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
 	var t Alert
-	err := decoder.Decode(&t)
+	err = decoder.Decode(&t)
 	if err != nil {
 		log.Println("error decoding json: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -192,9 +194,8 @@ func (env *Env) VerificationVerifyHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	defer r.Body.Close()
-	t.CountryCode = 1
 
-	verified, err := env.MsgSvc.VerifyCode(strconv.Itoa(t.PhoneNumber), t.Token)
+	verified, err := env.MsgSvc.VerifyCode(t.PhoneNumber, t.Token)
 	if !verified {
 		//todo: do this better. figure out all the ways that CheckPhoneVerification could fail and handle all of them well
 		w.WriteHeader(http.StatusUnauthorized)
@@ -217,19 +218,19 @@ var Now = func() time.Time {
 	return time.Now()
 }
 
-func CalculateNextCall(alert Alert) (int64, error) {
+func CalculateNextCall(nthWeek int, weekday int, timezone string) (int64, error) {
 
 	var NextCallTime int64
 
-	location, err := time.LoadLocation(alert.Timezone)
+	location, err := time.LoadLocation(timezone)
 	if err != nil {
 		return NextCallTime, err
 	}
 
 	now := Now().In(location)
-	t := timeAtNthDayOfMonth(now, alert.NthDay, alert.Weekday, 19).Add(-24 * time.Hour) //todo: change this hard coded hour
+	t := timeAtNthDayOfMonth(now, nthWeek, weekday, 19).Add(-24 * time.Hour) //todo: change this hard coded hour
 	if now.After(t) {
-		t = timeAtNthDayOfMonth(now.AddDate(0, 1, 0), alert.NthDay, alert.Weekday, 19).Add(-24 * time.Hour)
+		t = timeAtNthDayOfMonth(now.AddDate(0, 1, 0), nthWeek, weekday, 19).Add(-24 * time.Hour)
 	}
 
 	NextCallTime = t.Unix()
@@ -246,11 +247,11 @@ func timeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Ti
 	return TimeAtNthDayOfMonth
 }
 
-func remind(phoneNumber int, sender smsMessager) {
+func remind(phoneNumber string, sender smsMessager) {
 
 	fmt.Println("sending message")
 	message := "Don't forget about street tomorrow!"
-	err := sender.Send(from, strconv.Itoa(phoneNumber), message)
+	err := sender.Send(from, phoneNumber, message)
 	if err != nil {
 		log.Println("problem sending message: ", err)
 	}

@@ -33,12 +33,12 @@ func (t *TwilioMessageService) Send(from, to, body string) error {
 }
 
 func (t *TwilioMessageService) RequestCode(phoneNumber string) (bool, error) {
+	fmt.Println("phoneNumber: ", phoneNumber)
 	verification, err := t.authy.StartPhoneVerification(1, phoneNumber, "sms", url.Values{})
 	return verification.Success, err
 }
 
 func (t *TwilioMessageService) VerifyCode(phoneNumber, code string) (bool, error) {
 	verification, err := t.authy.CheckPhoneVerification(1, phoneNumber, code, url.Values{})
-	fmt.Printf("%+v", verification)
 	return verification.Success, err
 }

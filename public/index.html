@@ -5,105 +5,135 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Don't Fear the Sweeper</title>
+
     <link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32">
     <link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
     <link href="https://fonts.googleapis.com/css?family=Abel" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="style.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>
+    <script src="libphonenumber-js.min.js"></script>
+    <script src='ngMask.min.js'></script>
+    <script src="app.js"></script>
 </head>
 
-<body ng-app="authyDemo" ng-controller="PhoneVerificationController">
+<body ng-app="dontFearTheSweeper" ng-controller="signup" ng-cloak>
 
     <div class="form-container">
 
         <div class="title">
-            <h1>Don't fear the sweeper</h1>
+            <h1>Don't Fear the Sweeper</h1>
             <h2>Sign up for Street Sweeping Reminders!</h2>
-            <h3>You will be reminded at 7pm the night before street sweeping day</h3>
+            <h3>You will be reminded at 7pm the night before street your selected sweeping day(s)</h3>
         </div>
 
         <form role="form">
-            <div class="month-day">
-                <p>Which day of the month do you have street sweeping?</p>
+
+            <div class="select-timezone">
+                <p>Start by selecting your timezone: </p>
                 <div class="dropdown" title="timezone">
                     <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        <span>Timezone</span>
+                        <span ng-if="!TimezoneButton">Timezone</span>
+                        <span ng-cloak>{{TimezoneButton}}</span>
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="timeZone" role="menu">
-                        <li><a ng-click="setTimeZone('Pacific/Honolulu')" href="">(GMT-10:00) Hawaii Time</a></li>
-                        <li><a ng-click="setTimeZone('America/Anchorage')" href="">(GMT-08:00) Alaska Time</a></li>
-                        <li><a ng-click="setTimeZone('America/Los_Angeles')" href="">(GMT-07:00) Pacific Time</a></li>
-                        <li><a ng-click="setTimeZone('America/Denver')" href="">(GMT-06:00) Mountain Time</a></li>
-                        <li><a ng-click="setTimeZone('America/Phoenix')" href="">(GMT-07:00) Mountain Time - Arizona</a></li>
-                        <li><a ng-click="setTimeZone('America/Chicago')" href="">(GMT-05:00) Central Time</a></li>
-                        <li><a ng-click="setTimeZone('America/New_York')" href="">(GMT-04:00) Eastern Time</a></li>
-                    </ul>
-                </div>
-                <div class="dropdown" title="week">
-                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        Nth
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="daySetup" role="menu">
-                        <li><a ng-click="setWeek(1)" href="">first</a></li>
-                        <li><a ng-click="setWeek(2)" href="">second</a></li>
-                        <li><a ng-click="setWeek(3)" href="">third</a></li>
-                        <li><a ng-click="setWeek(4)" href="">fourth</a></li>
-                    </ul>
-                </div>
-                <div class="dropdown" title="day">
-                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        Weekday
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="weekSetup" role="menu">
-                        <li><a ng-click="setDay(0)" href="">Sunday</a></li>
-                        <li><a ng-click="setDay(1)" href="">Monday</a></li>
-                        <li><a ng-click="setDay(2)" href="">Tuesday</a></li>
-                        <li><a ng-click="setDay(3)" href="">Wednesday</a></li>
-                        <li><a ng-click="setDay(4)" href="">Thursday</a></li>
-                        <li><a ng-click="setDay(5)" href="">Friday</a></li>
-                        <li><a ng-click="setDay(6)" href="">Saturday</a></li>
+                        <li><a ng-click="setTimeZone('Pacific/Honolulu', 'Hawaii Time')" href="">(GMT-10:00) Hawaii Time</a></li>
+                        <li><a ng-click="setTimeZone('America/Anchorage', 'Alaska Time')" href="">(GMT-08:00) Alaska Time</a></li>
+                        <li><a ng-click="setTimeZone('America/Los_Angeles', 'Pacific Time')" href="">(GMT-07:00) Pacific Time</a></li>
+                        <li><a ng-click="setTimeZone('America/Denver', 'Mountain Time')" href="">(GMT-06:00) Mountain Time</a></li>
+                        <li><a ng-click="setTimeZone('America/Phoenix', 'Mountain Time - Arizona')" href="">(GMT-07:00) Mountain Time - Arizona</a></li>
+                        <li><a ng-click="setTimeZone('America/Chicago', 'Central Time')" href="">(GMT-05:00) Central Time</a></li>
+                        <li><a ng-click="setTimeZone('America/New_York', 'Eastern Time')" href="">(GMT-04:00) Eastern Time</a></li>
                     </ul>
                 </div>
             </div>
+
+            <div class="select-alert-times">
+
+                <p>Which day(s) of the month do you have street sweeping?</p>
+
+                <div class="input-group" ng-repeat="alert in Alert.times track by $index">
+                    <div title="nth-week">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <span ng-if="alert.nthWeek === 'Nth'">Nth</span>
+                            <span ng-cloak>{{nthWeekMap[alert.nthWeek]}}</span>
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="daySetup" role="menu">
+                            <li><a ng-click="setNthWeek(1, $index)" href="">First</a></li>
+                            <li><a ng-click="setNthWeek(2, $index)" href="">Second</a></li>
+                            <li><a ng-click="setNthWeek(3, $index)" href="">Third</a></li>
+                            <li><a ng-click="setNthWeek(4, $index)" href="">Fourth</a></li>
+                        </ul>
+                    </div>
+                    <div class="dropdown" title="weekday">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <span ng-if="alert.weekday === 'Weekday'">Weekday</span>
+                            <span ng-cloak>{{weekdayMap[alert.weekday]}}</span>
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="weekSetup" role="menu">
+                            <li><a ng-click="setWeekday(0, $index)" href="">Sunday</a></li>
+                            <li><a ng-click="setWeekday(1, $index)" href="">Monday</a></li>
+                            <li><a ng-click="setWeekday(2, $index)" href="">Tuesday</a></li>
+                            <li><a ng-click="setWeekday(3, $index)" href="">Wednesday</a></li>
+                            <li><a ng-click="setWeekday(4, $index)" href="">Thursday</a></li>
+                            <li><a ng-click="setWeekday(5, $index)" href="">Friday</a></li>
+                            <li><a ng-click="setWeekday(6, $index)" href="">Saturday</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn btn-default" ng-click="removeAlertTime($index)" ng-if="Alert.times.length > 1">
+                        <span class="glyphicon glyphicon-minus"></span>
+                    </button>
+                </div>
+
+                <button type="button" class="btn btn-default" ng-click="addAlertTime()" ng-if="Alert.times.length <= 3">
+                    <span class="glyphicon glyphicon-plus"></span>
+                </button>
+
+            </div>
+
+
             <div class="verification">
                 <p>Request phone verification code: </p>
                 <div class="input-group">
-                    <div class="input-group">
-                        <input type="number" class="form-control" placeholder="Phone #" aria-describedby="phone-number" ng-model="setup.phone_number">
-                        <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" ng-click="startVerification()">Get Code</button>
-                        </span>
-                    </div>
+                    <input type="text" class="form-control" placeholder="Phone #" aria-describedby="phone-number" ng-model="Alert.phoneNumber" mask="(999) 999-9999" clean="true">
+                    <span class="input-group-btn" ng-if="!verificationCodeRequested">
+                        <button class="btn btn-default" type="submit" ng-click="startVerification()">Get Code</button>
+                    </span>
                 </div>
+                <div ng-show="!isValidPhoneNumber(Alert.phoneNumber)">phone number not valid</div>
+                <div ng-show="isValidPhoneNumber(Alert.phoneNumber)">phone number valid!</div>
+                <p ng-if="verificationCodeRequestError">problem requesting a verification code, Please email mjkurrels@gmail.com for help</p>
             </div>
-            <div class="verification">
+
+            <div class="verification" ng-if="verificationCodeRequested">
                 <p>Now just type in the verification code to start getting notifications!</p>
                 <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Verification Token" aria-describedby="verification-token" ng-model="setup.token">
-                    <span class="input-group-btn">
-                         <button class="btn btn-default" type="button" ng-click="verifyToken()">Verify Phone</button>
+                    <input type="text" class="form-control" placeholder="5555" aria-describedby="verification-token" ng-model="Alert.token">
+                    <span class="input-group-btn" ng-if="!verified">
+                         <button class="btn btn-default" type="submit" ng-click="verifyToken()">Verify Phone</button>
                     </span>
                 </div>
+                <p ng-if="verified">you have successfully created your new street sweeping alerts </p>
+                <p ng-if="verifyError">there has been a problem creating your new street sweeping alerts. Please email mjkurrels@gmail.com for help</p>
             </div>
-            <div class="verification">
-                <p>to delete all alerts associated with this phone number, enter code here: </p>
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Verification Token" aria-describedby="verification-token" ng-model="setup.token">
-                    <span class="input-group-btn">
-                         <button class="btn btn-default" type="button" ng-click="deleteAccount()">Remove All Reminders</button>
-                    </span>
-                </div>
-            </div>
+            <!--<div class="verification">-->
+                <!--<p>to delete all alerts associated with this phone number, enter code here: </p>-->
+                <!--<div class="input-group">-->
+                    <!--<input type="text" class="form-control" placeholder="Verification Token" aria-describedby="verification-token" ng-model="Alert.token">-->
+                    <!--<span class="input-group-btn">-->
+                         <!--<button class="btn btn-default" type="button" ng-click="deleteAccount()">Remove All Reminders</button>-->
+                    <!--</span>-->
+                <!--</div>-->
+            <!--</div>-->
         </form>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>
-    <script src="app.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 </body>
 </html>
