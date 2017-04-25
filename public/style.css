@@ -63,7 +63,33 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    background-color: black;
+}
+
+/*.title-image{*/
+/*transform: scale(1.03);*/
+/*background-image: url("./assets/streetPic.jpg");*/
+/*position: absolute;*/
+/*top: 0;*/
+/*left: 0;*/
+/*bottom: 0;*/
+/*right: 0;*/
+/*}*/
+
+.page-bg {
+    transform: scale(1.03);
+    background-image: url("./assets/streetPic.jpg");
+    background-size: cover;
+    -webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    -o-filter: blur(5px);
+    -ms-filter: blur(5px);
+    filter: blur(5px);
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
 }
 
 .form-container {
@@ -74,21 +100,32 @@ html, body {
 }
 
 .title {
+    background-color: rgba(66, 134, 244, 0.62);
+    color: white;
+    font-weight: 600;
+    position: relative;
     width: 40%;
     float: left;
     height: 100%;
-    background-color: violet;
     padding: 10px;
 }
 
 .title h1 {
     font-size: 40px;
-    padding: 40px 0;
+    padding: 20px 20px;
 }
 
 .title h2 {
     font-size: 30px;
-    padding: 20px 0;
+    padding: 0 20px 20px;
+}
+
+.title h3 {
+    padding: 0 20px 20px;
+}
+
+.nth-week, .weekday {
+    width: 9em;
 }
 
 form {
@@ -105,6 +142,13 @@ form div {
 
 form div p {
     padding: 10px 0;
+}
+
+.email {
+    color: white;
+    position: absolute;
+    bottom: 0;
+    padding: 20px;
 }
 
 .select-timezone, .select-alert-times, .phone-info, .verification {
@@ -125,3 +169,4 @@ form div p {
 
 .verification {
 }
+

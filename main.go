@@ -250,7 +250,7 @@ func timeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Ti
 func remind(phoneNumber string, sender smsMessager) {
 
 	fmt.Println("sending message")
-	message := "Don't forget about street tomorrow!"
+	message := "Don't forget about street sweeping tomorrow!"
 	err := sender.Send(from, phoneNumber, message)
 	if err != nil {
 		log.Println("problem sending message: ", err)
