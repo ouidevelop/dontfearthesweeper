@@ -101,6 +101,10 @@ html, body {
     border-radius: 4px;
 }
 
+.donate {
+    padding-left: 20px;
+}
+
 .title {
     background-color: rgba(66, 134, 244, 0.62);
     color: white;
@@ -131,13 +135,14 @@ html, body {
     width: 9em;
 }
 
-form {
+.sign-up {
     width: 60%;
     float: right;
     height: 100%;
     background-color: white;
     padding: 40px 0;
     overflow: auto;
+    position: relative;
 }
 
 form div {
