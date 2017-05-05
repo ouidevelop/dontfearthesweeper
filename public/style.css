@@ -185,6 +185,10 @@ form div p {
 
 @media (max-width: 800px) {
 
+    .donate {
+        padding-left: 20px;
+    }
+
     body {
         color: white;
         background-color: rgb(66, 134, 244);
