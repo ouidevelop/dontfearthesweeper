@@ -9,20 +9,20 @@ import (
 func FindReadyAlerts(sender smsMessager) {
 	findReadyAlertStmt, err := DB.Prepare("select ID, PHONE_NUMBER, NTH_DAY, TIMEZONE, WEEKDAY from alerts where NEXT_CALL < ?")
 	if err != nil {
-		log.Fatal(err)
+		log.Println("In FindReadyAlerts, problem preparing database statement: ", err)
 	}
 	defer findReadyAlertStmt.Close()
 
 	updateStmt, err := DB.Prepare("UPDATE alerts SET NEXT_CALL = ? WHERE ID = ?")
 	if err != nil {
-		log.Fatal(err)
+		log.Println("In FindReadyAlerts, problem preparing database update statement: ", err)
 	}
 	defer updateStmt.Close()
 
 	nowUTC := Now().Unix()
 	rows, err := findReadyAlertStmt.Query(nowUTC)
 	if err != nil {
-		log.Println("problem exicuting statement: err", err)
+		log.Println("In FindReadyAlerts, problem exicuting statement: err", err)
 	}
 
 	defer rows.Close()

@@ -95,7 +95,7 @@ func main() {
 	isProduction := os.Getenv("STREETSWEEP_PRODUCTION")
 	if isProduction == "true" {
 		go func() {
-			for range time.Tick(5 * time.Minute) {
+			for range time.Tick(20 * time.Minute) {
 				resp, err := http.Get("https://dontfearthesweeper.herokuapp.com/")
 				if err != nil {
 					log.Println("problem pinging website: ", err)
@@ -152,9 +152,9 @@ func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
 func (env *Env) verificationStartHandler(w http.ResponseWriter, r *http.Request) {
 	requestDump, err := httputil.DumpRequest(r, true)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
-	fmt.Println(string(requestDump))
+	log.Println(string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
 	var t StartVerification
@@ -182,7 +182,7 @@ func (env *Env) VerificationVerifyHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("(((((((((((((((((((((((((((((((((((((((((", string(requestDump))
+	fmt.Println("VerificationVerifyHandler", string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
 	var t Alert
@@ -248,9 +248,8 @@ func timeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Ti
 }
 
 func remind(phoneNumber string, sender smsMessager) {
-
 	fmt.Println("sending message")
-	message := "Don't forget about street sweeping tomorrow!"
+	message := "Don't forget about street sweeping tomorrow! (to stop getting these reminders, please email mjkurrels@gmail.com)"
 	err := sender.Send(from, phoneNumber, message)
 	if err != nil {
 		log.Println("problem sending message: ", err)
