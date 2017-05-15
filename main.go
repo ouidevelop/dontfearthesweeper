@@ -247,8 +247,8 @@ func timeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Ti
 	return TimeAtNthDayOfMonth
 }
 
-func remind(phoneNumber string, sender smsMessager) {
-	fmt.Println("sending message")
+func remind(phoneNumber string, sender smsMessager, id int) {
+	fmt.Println("sending message to: ", id)
 	message := "Don't forget about street sweeping tomorrow! (to stop getting these reminders, please email mjkurrels@gmail.com)"
 	err := sender.Send(from, phoneNumber, message)
 	if err != nil {

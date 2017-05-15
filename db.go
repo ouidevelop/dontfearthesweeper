@@ -22,7 +22,7 @@ func FindReadyAlerts(sender smsMessager) {
 	nowUTC := Now().Unix()
 	rows, err := findReadyAlertStmt.Query(nowUTC)
 	if err != nil {
-		log.Println("In FindReadyAlerts, problem exicuting statement: err", err)
+		log.Println("In FindReadyAlerts, problem executing statement: err", err)
 	}
 
 	defer rows.Close()
@@ -46,7 +46,7 @@ func FindReadyAlerts(sender smsMessager) {
 			log.Println("error exicuting update statement: err", err)
 		}
 
-		remind(alert.PhoneNumber, sender)
+		remind(alert.PhoneNumber, sender, id)
 	}
 	if err = rows.Err(); err != nil {
 		log.Println("problem iterating through the rows: ", err)
