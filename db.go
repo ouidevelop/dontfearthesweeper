@@ -6,6 +6,8 @@ import (
 	"log"
 )
 
+// FindReadyAlerts finds all alerts that are ready to be sent (that is, that has a "next call" that is before now),
+// and sends a text message reminder to those alerts.
 func FindReadyAlerts(sender smsMessager) {
 	findReadyAlertStmt, err := DB.Prepare("select ID, PHONE_NUMBER, NTH_DAY, TIMEZONE, WEEKDAY from alerts where NEXT_CALL < ?")
 	if err != nil {
@@ -28,8 +30,8 @@ func FindReadyAlerts(sender smsMessager) {
 	defer rows.Close()
 	for rows.Next() {
 		var id int
-		alert := Alert{}
-		day := Day{}
+		alert := alert{}
+		day := day{}
 
 		err := rows.Scan(&id, &alert.PhoneNumber, &day.NthWeek, &alert.Timezone, &day.Weekday)
 		if err != nil {
@@ -53,8 +55,7 @@ func FindReadyAlerts(sender smsMessager) {
 	}
 }
 
-func save(alert Alert) error {
-	fmt.Println("in save ...", alert)
+func save(alert alert) error {
 	tx, err := DB.Begin()
 	stmt, err := tx.Prepare("INSERT INTO alerts (PHONE_NUMBER, NTH_DAY, TIMEZONE, WEEKDAY, NEXT_CALL, COUNTRY_CODE) VALUES (?,?,?,?,?,1)")
 	if err != nil {
@@ -75,8 +76,8 @@ func save(alert Alert) error {
 		}
 		result, err := stmt.Exec(alert.PhoneNumber, t.NthWeek, alert.Timezone, t.Weekday, nextCall)
 		rowsAffected, _ := result.RowsAffected()
-		lastInsertId, _ := result.LastInsertId()
-		fmt.Println("new alert created: ", rowsAffected, lastInsertId)
+		lastInsertID, _ := result.LastInsertId()
+		fmt.Println("new alert created: ", rowsAffected, lastInsertID)
 		if err != nil {
 			fmt.Println("problem exicuting statement: ", err)
 			err := tx.Rollback()
@@ -116,7 +117,7 @@ func startDB(mysqlPassword string) *sql.DB {
 	return db
 }
 
-func removeAlerts(alert Alert) error {
+func removeAlerts(alert alert) error {
 	stmt, err := DB.Prepare("DELETE FROM alerts WHERE PHONE_NUMBER = ?;")
 	if err != nil {
 		return err

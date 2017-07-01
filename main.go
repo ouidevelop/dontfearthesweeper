@@ -19,29 +19,35 @@ import (
 	"log"
 )
 
+// Env contains the interfaces for any external API's used. This way we can mock out those API's in tests.
 type Env struct {
 	MsgSvc MessageServicer
 }
 
 var (
 	//All global environment variables should be set at the beginning of the application, then remain unchanged.
+
+	// DB is a database handle representing a pool of zero or more
+	// underlying connections. It's safe for concurrent use by multiple
+	// goroutines.
+	// **(from sql package)**
 	DB *sql.DB
 	from string
 )
 
-type StartVerification struct {
+type startVerification struct {
 	Via         string `json:"via"`
 	PhoneNumber string `json:"phoneNumber"`
 }
 
-type Alert struct {
+type alert struct {
 	Timezone    string `json:"timezone"`
-	Times       []Day  `json:"times"`
+	Times       []day  `json:"times"`
 	PhoneNumber string `json:"phoneNumber"`
 	Token       string `json:"token"`
 }
 
-type Day struct {
+type day struct {
 	Weekday int `json:"weekday"`
 	NthWeek int `json:"nthWeek"`
 }
@@ -80,7 +86,7 @@ func main() {
 		log.Fatal("STREETSWEEP_AUTHY_API_KEY environment variable not set")
 	}
 
-	msgSvc := TwilioMessageService{
+	msgSvc := twilioMessageService{
 		twilio: gotwilio.NewTwilioClient(twilioID, twilioAuthToken),
 		authy:  authy.NewAuthyAPI(authyAPIKey),
 	}
@@ -121,7 +127,7 @@ func main() {
 func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("in stopAlertHandler")
 	decoder := json.NewDecoder(r.Body)
-	var t Alert
+	var t alert
 	err := decoder.Decode(&t)
 	if err != nil {
 		log.Println("error decoding json: ", err)
@@ -160,7 +166,7 @@ func (env *Env) verificationStartHandler(w http.ResponseWriter, r *http.Request)
 	log.Println(string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
-	var t StartVerification
+	var t startVerification
 	err = decoder.Decode(&t)
 	if err != nil {
 		log.Println("error decoding json: ", err)
@@ -180,6 +186,7 @@ func (env *Env) verificationStartHandler(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 }
 
+// VerificationVerifyHandler verifies that a user has the correct verification code.
 func (env *Env) VerificationVerifyHandler(w http.ResponseWriter, r *http.Request) {
 	requestDump, err := httputil.DumpRequest(r, true)
 	if err != nil {
@@ -188,7 +195,7 @@ func (env *Env) VerificationVerifyHandler(w http.ResponseWriter, r *http.Request
 	fmt.Println("VerificationVerifyHandler", string(requestDump))
 
 	decoder := json.NewDecoder(r.Body)
-	var t Alert
+	var t alert
 	err = decoder.Decode(&t)
 	if err != nil {
 		log.Println("error decoding json: ", err)
@@ -217,10 +224,13 @@ func (env *Env) VerificationVerifyHandler(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 }
 
+// Now provides a rapper to time.Now and can be used to mock calls to time.Now in tests.
 var Now = func() time.Time {
 	return time.Now()
 }
 
+// CalculateNextCall takes an nth week (first, second, third, forth), a weekday, and a timezone and calculates
+// the next time that a person should be alerted for street sweeping.
 func CalculateNextCall(nthWeek int, weekday int, timezone string) (int64, error) {
 
 	var NextCallTime int64
