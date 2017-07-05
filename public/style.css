@@ -51,44 +51,59 @@ table {
   outline: none;
 }
 
-body {
-  font-family: 'Pavanam', sans-serif;
-  background: url("assets/amanda-sandlin-10508.jpg") no-repeat fixed center; 
-  background-size: cover;
+a, .btn-default {
+  color: rgb(92, 116, 130);
 }
 
-.container {
+a:hover, a:active, a:focus {
+  text-decoration: none;
+  color: rgb(252, 168, 41);
+}
+
+.btn-default:hover, .btn-default:active, .btn-default:focus {
+  color: rgb(252, 168, 41);
+  background: white;
+}
+
+body {
+  font-family: 'Pavanam', sans-serif;
+  background: url("assets/pravin-narsing-122286.jpg") no-repeat fixed center;
+  background-size: cover;
+  color: rgb(34, 30, 17);
+}
+
+.main {
   position: absolute;
-  width: 70%;
-  left: 15%;
-  padding: 0;
+  padding: 0 20%;
 }
 
 .title {
-  background: rgba(255, 255, 255, 0.2);
-  height: 410px;
-  padding: 130px 40px;
+  background: rgba(255, 255, 255, 0.3);
+  height: 300px;
+  padding: 80px 40px;
   text-align: center;
 }
 
 h1 {
   margin: 30px 0;
   font-size: 300%;
+  font-weight: bold;
 }
 
 h2 {
   margin: 20px 0;
   font-size: 150%;
+  font-weight: bold;
 }
 
 .sign-up {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 40px;
+  background: rgba(227, 224, 227, 0.9);
+  padding: 0 40px;
 }
 
 .step {
   padding: 20px 0;
-  border-bottom: 1px solid black;
+  border-bottom: 2px solid rgb(92, 116, 130);
 }
 
 .description {
@@ -114,11 +129,12 @@ h2 {
   display: inline-block;
 }
 
-.plus-btn {
-}
-
 .minus-btn {
   display: inline-block;
+}
+
+.phone-input {
+  width: 50%;
 }
 
 .valid-check {
@@ -129,7 +145,6 @@ h2 {
   display: block;
   margin: 20px 0;
   font-size: 120%;
-  font-weight: bold;
   text-align: center;
 }
 
@@ -140,9 +155,10 @@ h2 {
 }
 
 .paypal-form {
-  border-bottom: 1px solid black;
+  border-bottom: 2px solid rgb(92, 116, 130);
   padding: 40px 0;
   text-align: center;
+  font-weight: bold;
 }
 
 .email {
@@ -152,27 +168,16 @@ h2 {
 }
 
 @media only screen and (max-width: 768px) {
-
+  .main {
+    padding: 0 10%;
+  }
+  .phone-input {
+    width: 100%;
+  }
 }
 
 @media only screen and (max-width: 480px) {
-  .container {
-    width: 100%;
-    left: 0;
-  }
-  .title {
-    padding-top: 80px;
+  .main {
+    padding: 0;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
