@@ -1,4 +1,4 @@
-/* http://meyerweb.com/eric/tools/css/reset/
+/* http://meyerweb.com/eric/tools/css/reset/ 
    v2.0 | 20110126
    License: none (public domain)
 */
@@ -12,318 +12,164 @@ b, u, i, center,
 dl, dt, dd, ol, ul, li,
 fieldset, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
 }
 /* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
+article, aside, details, figcaption, figure, 
 footer, header, hgroup, menu, nav, section {
-    display: block;
+  display: block;
 }
 body {
-    line-height: 1;
+  line-height: 1;
 }
 ol, ul {
-    list-style: none;
+  list-style: none;
 }
 blockquote, q {
-    quotes: none;
+  quotes: none;
 }
 blockquote:before, blockquote:after,
 q:before, q:after {
-    content: '';
-    content: none;
+  content: '';
+  content: none;
 }
 table {
-    border-collapse: collapse;
-    border-spacing: 0;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 
-/* http://meyerweb.com/eric/tools/css/reset/
-   v2.0 | 20110126
-   License: none (public domain)
-   done
-*/
-@media (min-width: 801px) {
-
-
-*, *:before, *:after {
-    box-sizing: border-box;
+*:focus {
+  outline: none;
 }
 
-html, body {
-
-    font-family: 'Abel', sans-serif;
-    height: 100%;
-    margin: 0;
-    padding: 0;
+body {
+  font-family: 'Pavanam', sans-serif;
+  background: url("assets/amanda-sandlin-10508.jpg") no-repeat fixed center; 
+  background-size: cover;
 }
 
-/*.title-image{*/
-/*transform: scale(1.03);*/
-/*background-image: url("./assets/streetPic.jpg");*/
-/*position: absolute;*/
-/*top: 0;*/
-/*left: 0;*/
-/*bottom: 0;*/
-/*right: 0;*/
-/*}*/
-
-.page-bg {
-    transform: scale(1.03);
-    background-image: url("./assets/streetPic.jpg");
-    background-size: cover;
-    -webkit-filter: blur(5px);
-    -moz-filter: blur(5px);
-    -o-filter: blur(5px);
-    -ms-filter: blur(5px);
-    filter: blur(5px);
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: -1;
-}
-
-.form-container {
-    margin: 40px 20%;
-    overflow: hidden;
-    height: calc(100% - 80px);
-    border-radius: 4px;
-}
-
-.donate {
-    padding-left: 20px;
+.container {
+  position: absolute;
+  width: 70%;
+  left: 15%;
+  padding: 0;
 }
 
 .title {
-    background-color: rgba(66, 134, 244, 0.62);
-    color: white;
-    font-weight: 600;
-    position: relative;
-    width: 40%;
-    float: left;
-    height: 100%;
-    padding: 10px;
-    overflow: hidden;
+  background: rgba(255, 255, 255, 0.2);
+  height: 410px;
+  padding: 130px 40px;
+  text-align: center;
 }
 
-.title h1 {
-    font-size: 40px;
-    padding: 20px 20px;
+h1 {
+  margin: 30px 0;
+  font-size: 300%;
 }
 
-.title h2 {
-    font-size: 30px;
-    padding: 0 20px 20px;
-}
-
-.title h3 {
-    padding: 0 20px 20px;
-}
-
-.nth-week, .weekday {
-    width: 9em;
+h2 {
+  margin: 20px 0;
+  font-size: 150%;
 }
 
 .sign-up {
-    width: 60%;
-    float: right;
-    height: 100%;
-    background-color: white;
-    padding: 40px 0;
-    overflow: auto;
-    position: relative;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 40px;
 }
 
-form div {
-    display: inline-block;
+.step {
+  padding: 20px 0;
+  border-bottom: 1px solid black;
 }
 
-form div p {
-    padding: 10px 0;
+.description {
+  display: block;
+  width: 100%;
+  margin: 20px 0;
+  font-weight: bold;
+  font-size: 120%;
+}
+
+.sub-description {
+  display: block;
+  margin: 10px 0;
+}
+
+.multiple-input {
+  margin: 2px 0;
+  margin-right: 10px;
+  display: block;
+}
+
+.group {
+  display: inline-block;
+}
+
+.plus-btn {
+}
+
+.minus-btn {
+  display: inline-block;
+}
+
+.valid-check {
+  padding: 10px 0;
+}
+
+.feedback-message {
+  display: block;
+  margin: 20px 0;
+  font-size: 120%;
+  font-weight: bold;
+  text-align: center;
+}
+
+.donate-message {
+  display: block;
+  margin: 10px 0;
+  font-size: 110%;
+}
+
+.paypal-form {
+  border-bottom: 1px solid black;
+  padding: 40px 0;
+  text-align: center;
 }
 
 .email {
-    color: white;
-    position: absolute;
-    bottom: 0;
-    padding: 20px;
+  display: block;
+  text-align: center;
+  padding: 20px 0;
 }
 
-.select-timezone, .select-alert-times, .phone-info, .verification {
-    padding: 0 20px 20px 20px;
-}
-
-.time-zone {
+@media only screen and (max-width: 768px) {
 
 }
 
-.month-day {
-
-}
-
-.phone-info {
-
-}
-
-.verification {
-
-}
-
-
-}
-
-@media (max-width: 800px) {
-
-    .donate {
-        padding-left: 20px;
-    }
-
-    body {
-        color: white;
-        background-color: rgb(66, 134, 244);
-        line-height: 1;
-    }
-
-    *, *:before, *:after {
-        box-sizing: border-box;
-    }
-
-    html, body {
-        font-family: 'Abel', sans-serif;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-    }
-
-    /*.title-image{*/
-    /*transform: scale(1.03);*/
-    /*background-image: url("./assets/streetPic.jpg");*/
-    /*position: absolute;*/
-    /*top: 0;*/
-    /*left: 0;*/
-    /*bottom: 0;*/
-    /*right: 0;*/
-    /*}*/
-
-    .page-bg {
-        /* transform: scale(1.03); */
-        /* background-image: url("./assets/streetPic.jpg"); */
-        /* background-size: cover; */
-        -webkit-filter: blur(5px);
-        -moz-filter: blur(5px);
-        -o-filter: blur(5px);
-        -ms-filter: blur(5px);
-        /* filter: blur(5px); */
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        z-index: -1;
-    }
-
-    .form-container {
-        /* margin: 40px 20%; */
-        /* overflow: hidden; */
-        /* height: calc(100% - 80px); */
-        /* border-radius: 4px; */
-    }
-
-    .title {
-        background-color: rgba(66, 134, 244, 0.62);
-        color: white;
-        font-weight: 600;
-        position: relative;
-        /* float: left; */
-        height: 100%;
-        padding: 10px;
-        /* overflow: hidden; */
-    }
-
-    .title h1 {
-        font-size: 40px;
-        padding: 20px 20px;
-    }
-
-    .title h2 {
-        font-size: 30px;
-        padding: 0 20px 20px;
-    }
-
-    .title h3 {
-        padding: 0 20px 20px;
-    }
-
-    .nth-week, .weekday {
-        width: 9em;
-    }
-
-    form {
-        /* width: 60%; */
-        /* float: right; */
-        /* height: 100%; */
-        /* background-color: white; */
-        /* padding: 40px 0; */
-        /* overflow: auto; */
-    }
-
-    form div {
-        display: block;
-        /* padding-bottom: 1px; */
-    }
-
-    form div p {
-        padding: 10px 0;
-    }
-
-    .email {
-        /* color: white; */
-        /* position: absolute; */
-        /* bottom: 0; */
-        padding: 20px;
-    }
-
-    .select-timezone, .select-alert-times, .phone-info, .verification {
-        padding: 0 20px 20px 20px;
-    }
-
-    .time-zone {
-
-    }
-
-    .month-day {
-
-    }
-
-    .phone-info {
-
-    }
-
-    .verification {
-
-    }
-
-
+@media only screen and (max-width: 480px) {
+  .container {
+    width: 100%;
+    left: 0;
+  }
+  .title {
+    padding-top: 80px;
+  }
 }
 
 
 
-/*??????*/
-/**/
-/**/
-/**/
-/**/
+
+
+
 
 
 
