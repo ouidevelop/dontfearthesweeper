@@ -1,6 +1,8 @@
 # dontfearthesweeper
 Street Sweeping Reminders
 
+site: www.dontfearthesweeper.com
+
 To run the application, you must have go installed. see here: <https://golang.org/doc/install>
 
 I also recomend you use gin to run the application. Gin makes it so that you don't have to restart your server every time you make a change to your code. Once you have Go set up on your computer, you can install gin by running `go get github.com/codegangsta/gin`

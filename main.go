@@ -24,8 +24,6 @@ type Env struct {
 	MsgSvc MessageServicer
 }
 
-const from = "5102414070"
-
 var (
 	//All global environment variables should be set at the beginning of the application, then remain unchanged.
 
@@ -34,6 +32,7 @@ var (
 	// goroutines.
 	// **(from sql package)**
 	DB *sql.DB
+	from string
 )
 
 type startVerification struct {
@@ -54,7 +53,11 @@ type day struct {
 }
 
 func init() {
-
+	from = os.Getenv("TWILIO_PHONE_NUMBER")
+	if from == "" {
+		log.Fatal("TWILIO_PHONE_NUMBER environment variable not set")
+	}
+	
 	mysqlPassword := os.Getenv("MYSQL_PASSWORD")
 	if mysqlPassword == "" {
 		log.Fatal("MYSQL_PASSWORD environment variable not set")
