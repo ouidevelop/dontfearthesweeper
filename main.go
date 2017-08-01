@@ -97,7 +97,7 @@ func main() {
 
 	go func() {
 		for range time.Tick(10 * time.Second) {
-			FindReadyAlerts(env.MsgSvc)
+			//FindReadyAlerts(env.MsgSvc)
 		}
 	}()
 
