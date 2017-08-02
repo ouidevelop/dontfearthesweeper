@@ -15,29 +15,6 @@ import (
 )
 
 var _ = Describe("Main", func() {
-	Describe("CalculateNextCall", func() {
-		It("should calculate the next date to send an alert", func() {
-			location, err := time.LoadLocation("America/New_York")
-			Expect(err).NotTo(HaveOccurred())
-
-			weekday := 0
-			nthWeek := 1
-			timezone := "America/New_York"
-
-			nextAlertTime, err := CalculateNextCall(nthWeek, weekday, timezone)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(nextAlertTime).To(Equal(int64(1494111600))) //2017-05-06 19:00:00 -0400 EDT
-
-			// change the weekday to friday to make sure that the function determines that the next alert is this month
-			weekday = 5
-
-			nextAlertTime, err = CalculateNextCall(nthWeek, weekday, timezone)
-			fmt.Println("time: ", time.Unix(nextAlertTime, 0).In(location))
-			Expect(err).NotTo(HaveOccurred())
-			Expect(nextAlertTime).To(Equal(int64(1491519600))) //2017-04-06 19:00:00 -0400 EDT
-		})
-	})
-
 	Describe("application", func() {
 		It("should alert people who's alert is past due", func() {
 			err := DB.Ping()
@@ -69,6 +46,33 @@ var _ = Describe("Main", func() {
 				body: "Don't forget about street sweeping tomorrow! (to stop getting these reminders, please email mjkurrels@gmail.com)",
 			}
 			Expect(MockEnv.MsgSvc).To(Equal(expected))
+		})
+	})
+
+	Describe("CalculateNextCall", func() {
+		It("should calculate the next date to send an alert", func() {
+			location, err := time.LoadLocation("America/Los_Angeles")
+			Now = func() time.Time {
+				return time.Date(2017, 7, 31, 19, 1, 1, 0, location)
+			}
+			Expect(err).NotTo(HaveOccurred())
+
+			weekday := 2
+			nthWeek := 1
+			timezone := "America/Los_Angeles"
+
+			fmt.Println("hi:", Now())
+			nextAlertTime, err := CalculateNextCall(nthWeek, weekday, timezone)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(nextAlertTime).To(Equal(int64(1504576800))) //2017-09-04 19:00:00 -0700
+
+			// change the weekday to friday to make sure that the function determines that the next alert is this month
+			weekday = 5
+
+			nextAlertTime, err = CalculateNextCall(nthWeek, weekday, timezone)
+			fmt.Println("time: ", time.Unix(nextAlertTime, 0).In(location))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(nextAlertTime).To(Equal(int64(1501812000))) //2017-08-03 19:00:00 -0700 PDT
 		})
 	})
 })
