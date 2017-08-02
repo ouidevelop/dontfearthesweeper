@@ -31,7 +31,7 @@ var (
 	// underlying connections. It's safe for concurrent use by multiple
 	// goroutines.
 	// **(from sql package)**
-	DB *sql.DB
+	DB   *sql.DB
 	from string
 )
 
@@ -57,7 +57,7 @@ func init() {
 	if from == "" {
 		log.Fatal("TWILIO_PHONE_NUMBER environment variable not set")
 	}
-	
+
 	mysqlPassword := os.Getenv("MYSQL_PASSWORD")
 	if mysqlPassword == "" {
 		log.Fatal("MYSQL_PASSWORD environment variable not set")
@@ -97,7 +97,7 @@ func main() {
 
 	go func() {
 		for range time.Tick(10 * time.Second) {
-			//FindReadyAlerts(env.MsgSvc)
+			FindReadyAlerts(env.MsgSvc)
 		}
 	}()
 
@@ -233,38 +233,42 @@ var Now = func() time.Time {
 // the next time that a person should be alerted for street sweeping.
 func CalculateNextCall(nthWeek int, weekday int, timezone string) (int64, error) {
 
-	var NextCallTime int64
+	var NextCallUnixTime int64
 
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return NextCallTime, err
+		return NextCallUnixTime, err
 	}
 
 	now := Now().In(location)
-	t := timeAtNthDayOfMonth(now, nthWeek, weekday, 19).Add(-24 * time.Hour) //todo: change this hard coded hour
-	if now.After(t) {
-		t = timeAtNthDayOfMonth(now.AddDate(0, 1, 0), nthWeek, weekday, 19).Add(-24 * time.Hour)
+	timeToSendMessageThisMonth := timeAtNthDayOfMonth(now, nthWeek, weekday, 19)
+	if now.After(timeToSendMessageThisMonth) {  // if right now is after the time to send a message this month
+		dateNextMonth := time.Date(now.Year(), now.Month(), 1,0,0,0,0, now.Location()).AddDate(0, 1, 0)
+		timeToSendMessageThisMonth = timeAtNthDayOfMonth(dateNextMonth, nthWeek, weekday, 19)
+		if now.After(timeToSendMessageThisMonth) {
+			dateInTwoMonths := time.Date(now.Year(), now.Month(), 1,0,0,0,0, now.Location()).AddDate(0, 2, 0)
+			timeToSendMessageThisMonth = timeAtNthDayOfMonth(dateInTwoMonths, nthWeek, weekday, 19)
+		}
 	}
 
-	NextCallTime = t.Unix()
+	NextCallUnixTime = timeToSendMessageThisMonth.Unix()
 
-	return NextCallTime, nil
+	return NextCallUnixTime, nil
 }
 
 func timeAtNthDayOfMonth(t time.Time, nthDay int, weekday int, hour int) time.Time {
-
 	firstDayOfThisMonth := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 	dateOfFirstWeekday := ((weekday+7)-int(firstDayOfThisMonth.Weekday()))%7 + 1
 	dateOfNthWeekday := dateOfFirstWeekday + ((nthDay - 1) * 7)
 	TimeAtNthDayOfMonth := time.Date(t.Year(), t.Month(), dateOfNthWeekday, hour, 0, 0, 0, t.Location())
-	return TimeAtNthDayOfMonth
+	return TimeAtNthDayOfMonth.Add(-24 * time.Hour)
 }
 
 func remind(phoneNumber string, sender smsMessager, id int) {
 	fmt.Println("sending message to: ", id)
-	message := "Don't forget about street sweeping tomorrow! (to stop getting these reminders, please email mjkurrels@gmail.com)"
-	err := sender.Send(from, phoneNumber, message)
-	if err != nil {
-		log.Println("problem sending message: ", err)
-	}
+	//message := "Don't forget about street sweeping tomorrow! (to stop getting these reminders, please email mjkurrels@gmail.com)"
+	//err := sender.Send(from, phoneNumber, message)
+	//if err != nil {
+	//	log.Println("problem sending message: ", err)
+	//}
 }
