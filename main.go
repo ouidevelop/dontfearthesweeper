@@ -122,7 +122,8 @@ func main() {
 	}
 
 	http.Handle("/", http.FileServer(http.Dir("./public")))
-	http.Handle("/remove", http.FileServer(http.Dir("./public/remove")))
+	http.Handle("/remove/", http.StripPrefix("/remove/", http.FileServer(http.Dir("./public/remove"))))
+	http.Handle("/remove", http.StripPrefix("/remove", http.FileServer(http.Dir("./public/remove"))))
 	http.HandleFunc("/verification/start", env.verificationStartHandler)
 	http.HandleFunc("/verification/verify", env.VerificationVerifyHandler)
 	http.HandleFunc("/alerts/stop", env.stopAlertHandler)
