@@ -76,18 +76,22 @@ app.controller('signup', function ($scope, $http, $window, $timeout) {
     $scope.verificationCodeRequested = false;
     $scope.verificationCodeRequestError = false;
 
-    $scope.startVerification = function () {
+    $scope.startVerification = function (isRemove) {
+        console.log("isRemove: ", isRemove);
 
-        if ($scope.Alert.timezone === "") {
-            alert("must select timezone");
-            return
+        if (isRemove !== true) {
+            if ($scope.Alert.timezone === "") {
+                alert("must select timezone");
+                return
+            }
+
+            var success = validateTimes();
+            if (!success) {
+                alert("must select a week and day");
+                return
+            }
         }
 
-        var success = validateTimes();
-        if (!success) {
-            alert("must select a week and day");
-            return
-        }
 
         success = $scope.isValidPhoneNumber($scope.Alert.phoneNumber);
         if (!success) {
@@ -126,14 +130,21 @@ app.controller('signup', function ($scope, $http, $window, $timeout) {
      * Delete all alerts of a given phone number
      */
     $scope.deleteAccount = function () {
+        $scope.invalidToken = false;
         $http.post('/alerts/stop', $scope.Alert)
             .success(function (data, status, headers, config) {
                 // todo: should give meaningful feedback to user here
                 console.log("Delete started: ", data);
+                $scope.removed = true;
             })
             .error(function (data, status, headers, config) {
                 // todo: should give meaningful feedback to user here
                 console.error("remove alerts error: ", data);
+                if (data === "validation code incorrect") {
+                    $scope.invalidToken = true;
+                } else {
+                    $scope.removeError = "validation code incorrect";
+                }
             });
     };
 });

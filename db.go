@@ -117,15 +117,20 @@ func startDB(mysqlPassword string) *sql.DB {
 	return db
 }
 
-func removeAlerts(alert alert) error {
+func removeAlerts(alert removeAlert) error {
 	stmt, err := DB.Prepare("DELETE FROM alerts WHERE PHONE_NUMBER = ?;")
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(alert.PhoneNumber)
+	res, err := stmt.Exec(alert.PhoneNumber)
 	if err != nil {
 		return err
 	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	fmt.Println("rows affected: ", affected)
 	return nil
 }

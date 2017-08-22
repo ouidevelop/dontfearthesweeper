@@ -47,6 +47,11 @@ type alert struct {
 	Token       string `json:"token"`
 }
 
+type removeAlert struct {
+	PhoneNumber string `json:"phoneNumber"`
+	Token       string `json:"token"`
+}
+
 type day struct {
 	Weekday int `json:"weekday"`
 	NthWeek int `json:"nthWeek"`
@@ -117,6 +122,7 @@ func main() {
 	}
 
 	http.Handle("/", http.FileServer(http.Dir("./public")))
+	http.Handle("/remove", http.FileServer(http.Dir("./public/remove")))
 	http.HandleFunc("/verification/start", env.verificationStartHandler)
 	http.HandleFunc("/verification/verify", env.VerificationVerifyHandler)
 	http.HandleFunc("/alerts/stop", env.stopAlertHandler)
@@ -127,33 +133,46 @@ func main() {
 func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("in stopAlertHandler")
 	decoder := json.NewDecoder(r.Body)
-	var t alert
+	var t removeAlert
 	err := decoder.Decode(&t)
+	log.Println("1")
 	if err != nil {
+		log.Println("2")
 		log.Println("error decoding json: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "oops! we made a mistake")
 		return
 	}
+	log.Println("3")
 	defer r.Body.Close()
-	log.Println("alert: ", t)
 
 	verification, err := env.MsgSvc.VerifyCode(t.PhoneNumber, t.Token)
+	if err != nil {
+		log.Println("4")
+		log.Println("error verifying code: error: ", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		io.WriteString(w, "validation code incorrect")
+		return
+	}
+	log.Println("5")
 	if !verification {
-		log.Println("verification attempt not successful: error: ", err)
+		log.Println("6")
 		//todo: do this better. figure out all the ways that CheckPhoneVerification could fail and handle all of them well
 		w.WriteHeader(http.StatusUnauthorized)
 		io.WriteString(w, "validation code incorrect")
 		return
 	}
 
+	log.Println("7")
 	err = removeAlerts(t)
 	if err != nil {
+		log.Println("8")
 		log.Println("problem deleting alert to database: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "oops! we made a mistake")
 		return
 	}
+	log.Println("9")
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -242,11 +261,11 @@ func CalculateNextCall(nthWeek int, weekday int, timezone string) (int64, error)
 
 	now := Now().In(location)
 	timeToSendMessageThisMonth := timeAtNthDayOfMonth(now, nthWeek, weekday, 19)
-	if now.After(timeToSendMessageThisMonth) {  // if right now is after the time to send a message this month
-		dateNextMonth := time.Date(now.Year(), now.Month(), 1,0,0,0,0, now.Location()).AddDate(0, 1, 0)
+	if now.After(timeToSendMessageThisMonth) { // if right now is after the time to send a message this month
+		dateNextMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()).AddDate(0, 1, 0)
 		timeToSendMessageThisMonth = timeAtNthDayOfMonth(dateNextMonth, nthWeek, weekday, 19)
 		if now.After(timeToSendMessageThisMonth) {
-			dateInTwoMonths := time.Date(now.Year(), now.Month(), 1,0,0,0,0, now.Location()).AddDate(0, 2, 0)
+			dateInTwoMonths := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()).AddDate(0, 2, 0)
 			timeToSendMessageThisMonth = timeAtNthDayOfMonth(dateInTwoMonths, nthWeek, weekday, 19)
 		}
 	}
