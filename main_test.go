@@ -1,7 +1,7 @@
 package main_test
 
 import (
-	. "github.com/kurrels/dontfearthesweeper"
+	. "github.com/ouidevelop/dontfearthesweeper"
 
 	"fmt"
 	"time"
