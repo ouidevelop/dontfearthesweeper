@@ -2,24 +2,23 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-  <meta name="description" content="Don't Fear The Sweeper is a reminder app that sends you text message before your street sweeping days.">
-  <meta name="keywords" content="text message reminder app street sweeping">
+  <meta name="description" content="Stop paying street sweeping fines. Sign up for free text message alerts based on your local street sweeping schedule. Don't fear the sweeper!">
+  <meta name="keywords" content="text, message, reminder, app, street, sweeping, cleaning, schedule, tickets, cell phone">
   <meta name="author" content="Marine Guillanton">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Don't Fear the Sweeper</title>
+	<title>Avoid Street Sweeping Tickets - Don't Fear the Sweeper</title>
 	<link href="https://fonts.googleapis.com/css?family=Pavanam" rel="stylesheet">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="stylesheet" type="text/css" href="style.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>
 	<script src='ngMask.min.js'></script>
 	<script src="libphonenumber-js.min.js"></script>
-	<script src="app.js"></script>
+	<script src="app.min.js"></script>
 </head>
 
 <body class="blue" ng-app="dontFearTheSweeper" ng-controller="signup" ng-cloak>
-
 	<div class="main">
 
 		<div class="title">
@@ -117,7 +116,7 @@
 					<div class="input-group phone-input">
 						<input type="text" class="form-control" placeholder="5555" aria-describedby="verification-token" ng-model="Alert.token">
 						<span ng-if="!verified" class="input-group-btn">
-						 <button class="btn btn-default" type="submit" ng-click="verifyToken()">Verify Phone</button>
+						 <button class="btn btn-default" type="submit" ng-click="verifyToken()" onClick="ga('send','event',{'eventCategory':'Verify Button','eventAction':'Click'});">Verify Phone</button>
 						</span>
 					</div>
 					<span ng-if="verified" class="feedback-message">You have successfully created your new street sweeping alerts!</span>
@@ -146,8 +145,12 @@
 				<a href= "mailto:ouidevelop@gmail.com">
 					<span>ouidevelop@gmail.com</span>
 				</a>
+				<p>Or check us out at:
+				<a href= "http://ouidevelop.com">
+					<span>OuiDevelop.com</span>
+				</a>
+				</p>
 			</span>
-
 		</div>
 	</div>
 
