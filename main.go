@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"github.com/nytimes/gziphandler"
 
 	"database/sql"
 
@@ -121,7 +122,7 @@ func main() {
 		}()
 	}
 
-	http.Handle("/", http.FileServer(http.Dir("./public")))
+	http.Handle("/", gziphandler.GzipHandler(http.FileServer(http.Dir("./public"))))
 	http.Handle("/remove/", http.StripPrefix("/remove/", http.FileServer(http.Dir("./public/remove"))))
 	http.Handle("/remove", http.StripPrefix("/remove", http.FileServer(http.Dir("./public/remove"))))
 	http.HandleFunc("/verification/start", env.verificationStartHandler)

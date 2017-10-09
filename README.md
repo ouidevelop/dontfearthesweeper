@@ -10,9 +10,9 @@ I also recommend you use gin to run the application. Gin makes it so that you do
 When you have gin, you can run the application by going into the project folder and runing `gin`.
 
 You will need some environment variables set. Specifically, you will have to set the following: 
-STREETSWEEP_AUTHY_API_KEY - twilio's Authy api key
-TWILIO_ID - twilio id
-TWILIO_AUTH_TOKEN - twilio authentication token
+STREETSWEEP_AUTHY_API_KEY - twilio's Authy api key  
+TWILIO_ID - twilio id  
+TWILIO_AUTH_TOKEN - twilio authentication token  
 
 Once you have the application running, go to localhost:3000 in your browser (or instead of 3000, use whichever port gin tells you to use when you first run gin).
 
