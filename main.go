@@ -137,44 +137,35 @@ func (env *Env) stopAlertHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var t removeAlert
 	err := decoder.Decode(&t)
-	log.Println("1")
 	if err != nil {
-		log.Println("2")
 		log.Println("error decoding json: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "oops! we made a mistake")
 		return
 	}
-	log.Println("3")
 	defer r.Body.Close()
 
 	verification, err := env.MsgSvc.VerifyCode(t.PhoneNumber, t.Token)
 	if err != nil {
-		log.Println("4")
 		log.Println("error verifying code: error: ", err)
 		w.WriteHeader(http.StatusUnauthorized)
 		io.WriteString(w, "validation code incorrect")
 		return
 	}
-	log.Println("5")
 	if !verification {
-		log.Println("6")
 		//todo: do this better. figure out all the ways that CheckPhoneVerification could fail and handle all of them well
 		w.WriteHeader(http.StatusUnauthorized)
 		io.WriteString(w, "validation code incorrect")
 		return
 	}
 
-	log.Println("7")
 	err = removeAlerts(t)
 	if err != nil {
-		log.Println("8")
 		log.Println("problem deleting alert to database: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "oops! we made a mistake")
 		return
 	}
-	log.Println("9")
 
 	w.WriteHeader(http.StatusOK)
 }
